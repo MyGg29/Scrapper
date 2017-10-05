@@ -3,17 +3,20 @@
 import urllib
 import urllib.request
 from bs4 import BeautifulSoup
-import json
 from icalendar import Calendar, Event
+from datetime import datetime
 
-req = urllib.request.Request(url = "https://aurion-lille.isen.fr/faces/Planning.xhtml", method = "GET")
-req.add_header("Cookie","JSESSIONID=2DBAF2CA7C879C95BBAAD74F817C1E84")
+try:
+	raw = open("rawpage.txt", "r")
+	page = raw.read()
+except ValueError:	
+	req = urllib.request.Request(url = "https://aurion-lille.isen.fr/faces/Planning.xhtml", method = "GET")
+	req.add_header("Cookie","JSESSIONID=8D848A1227953213400DFADFB0D2D821")
+	f = urllib.request.urlopen(req)
+	page = f.read().decode('utf-8')
 
-#print(req)
-
-f = urllib.request.urlopen(req)
-
-page = f.read().decode('utf-8')
+#pagefile = open("rawpage.txt", "w")
+#pagefile.write(page)
 
 soup = BeautifulSoup(page, 'html.parser')
 
@@ -44,10 +47,23 @@ print(dFin)
 print(hFin)
 
 ical = Calendar()
-ical["dtstart"] =
+association = {'janvier' : 1, 'fevrier' : 2, 'mars' : 3, 'avril' : 4, 'mai' : 5, 'juin' : 6, 'juillet' : 7, 'aout' : 8, 'septembre' : 9, 'octobre' : 10, 'novembre' : 11, 'decembre' : 12}
 
-
-ical.to_ical()
-file = open("calendrier.ical","w")
-file.write(ical)
-file.close()
+print(dDebut[i].split(" ")[3])
+'''
+for i in range(0, len(evenement)):
+	ical.add("dtstart", datetime.datetime(
+											dDebut[i].split(" ")[3], 
+											association[dDebut[i].split(" ")[2], 
+											dDebut[i].split(" ")[1], 
+											hDebut[i].split(":")[0], 
+											hDebut[i].split(":")[1]
+										)
+			)
+    print(datetime.datetime(dDebut[i].split(" ")[3], association[dDebut[i].split(" ")[2], dDebut[i].split(" ")[1], hDebut[i].split(":")[0], hDebut[i].split(":")[1]))
+	1+1
+#ical.to_ical()
+#file = open("calendrier.ical","w")
+#file.write(ical)
+#file.close()
+'''

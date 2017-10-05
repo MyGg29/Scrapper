@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE HTML>
+<html lang="fr" xmlns="http://www.w3.org/1999/xhtml"><head id="j_idt2">
+            <title>
+            </title>
+            <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+            <meta name="robots" content="noindex, nofollow" /><script type="text/javascript" src="/faces/javax.faces.resource/jquery.js"></script>
+
+            
+            <script type="text/javascript">
+                setLargeurDivCenter = function() {
+                    document.getElementById('form:largeurDivCenter').value = document.getElementById('form:Center').clientWidth;
+                };
+                window.addEventListener("load", setLargeurDivCenter);
+                window.addEventListener("resize", setLargeurDivCenter);
+            </script>
+
+            
+            <script type="text/javascript">
+                $(document).keydown(function(e) {
+                    var nodeName = e.target.nodeName.toLowerCase();
+
+                    if (e.which === 8) {  // 8 = touche retour arrière
+                        if ((nodeName === 'input' && (e.target.type === 'text' || e.target.type === 'password')) || nodeName === 'textarea') {
+                            // ne rien faire
+                        } else {
+                            e.preventDefault();
+                        }
+                    }
+                    else if (e.which === 13) {  // 13 = touche entrée
+                        if (nodeName === 'input' && (e.target.type === 'text' || e.target.type === 'password')) {
+                            e.preventDefault();
+                        } else {
+                            // ne rien faire
+                        }
+                    }
+                });
+            </script><script type="text/javascript" src="/faces/javax.faces.resource/windowfiles/dhtmlwindow.js"></script>
+
+<style type="text/css">
+.cadrePrincipal {
+    width: 1202px;
+}
+
+.cadrePlanning {
+    width: 1200px;
+    height: 650px;
+}
+
+.case {
+    width: 0px;
+    height: 0px;
+    border-width: 1px;
+}
+
+.evenement {
+    border-width: 1px;
+    padding: 5px;
+}
+
+.evenementAgrandi {
+    z-index: 10;
+    border-width: 2px;
+}
+</style>
+
+<script type="text/javascript">
+/***********************************************
+* DHTML Window Widget- © Dynamic Drive (www.dynamicdrive.com)
+* This notice must stay intact for legal use.
+* Visit http://www.dynamicdrive.com/ for full source code
+***********************************************/
+</script>
+
+<script type="text/javascript">
+/* Lorsque le texte situé dans la case de l'événement est trop long, il est coupé à
+     partir du bord de la case. Cette fonction agrandit la case en hauteur et en largeur
+     jusqu'à ce que le texte entier soit lisible.
+
+     Lors de l'agrandissement, la largeur et la hauteur de la case ne doivent pas devenir plus petit
+     que la case dans sa taille initiale. Car :
+       - lorsque cette fonction agrandit la case et que la hauteur devient plus courte qu'initialement, le
+         curseur peut se retrouver en dehors de la case et déclencher un événement "onmouseout". Cet événement
+         va appeler la fonction "reduireCase" qui va redonner la taille initiale de la case. Sans avoir bougé,
+         le curseur se retrouve de nouveau dans la case, ce qui génère un événement "onmouseover". Et ainsi de
+         suite. Créer un système pour éviter que cela parte en boucle est plus complexe que d'agrandir la case
+         de façon à ce que la hauteur et la largeur soient plus grand que ceux de la case initiale,
+       - même si la case garde son point d'origine (en haut à gauche) au même endroit, le fait qu'elle
+         ait une taille différente rend plus difficile la lecture du planning.
+*/
+function agrandirCase(element, event) {
+    // Si la touche contrôle est maintenue appuyée pendant le survol du curseur, cette fonction est désactivée
+    if (event.ctrlKey == true)
+        return;
+    
+    var MAX_SCROLL = 1000000;
+    var INCREMENT = 50;
+    var je = jQuery(element); // je : jQuery Element
+
+    // tente de scroller verticalement et horizontalement au maximum
+    je.scrollTop(MAX_SCROLL);
+    je.scrollLeft(MAX_SCROLL);
+
+    // le div a défilé, ce qui indique qu'une partie du texte n'est pas lisible
+    if (je.scrollTop() != 0 || je.scrollLeft() != 0) {
+        je.addClass("evenementAgrandi");
+
+        // sauvegarde de la taille actuelle pour la restaurer lors de "reduireCase"
+        element.oldWidth = je.width();
+        element.oldHeight = je.height();
+
+        var maxWindowHeight = jQuery(window).height();
+        var maxWindowWidth = jQuery(window).width();
+
+        // Agrandit la largeur du div à la largeur du mot le plus long
+        // tant que le div peut défiler et que la largeur du div ne dépasse pas la largeur de la fenêtre
+        while (je.scrollLeft() != 0 && je.width() + INCREMENT <= maxWindowWidth) {
+            je.width(je.width() + INCREMENT);
+            je.scrollLeft(MAX_SCROLL);
+        }
+
+        // Agrandit la hauteur du div
+        while (je.scrollTop() != 0 && je.height() + INCREMENT <= maxWindowHeight) {
+            je.height(je.height() + INCREMENT);
+            je.scrollTop(MAX_SCROLL);
+        }
+
+        // Dans le cas où les barres de défilement seraient encore affichées, repositionne le texte au début
+        je.scrollTop(0);
+        je.scrollLeft(0);
+    }
+}
+
+// Rétablit la taille initiale de la case de l'événement
+function reduireCase(element, event) {
+    var je = jQuery(element); // je : jQuery Element
+
+    je.width(element.oldWidth);
+    je.height(element.oldHeight);
+    je.removeClass("evenementAgrandi");
+    
+    // repositionne le texte au début
+    je.scrollTop(0);
+    je.scrollLeft(0);
+}
+</script><script type="text/javascript" src="/faces/javax.faces.resource/jsf.js?ln=javax.faces"></script><script type="text/javascript" src="/faces/javax.faces.resource/richfaces.js"></script><script type="text/javascript" src="/faces/javax.faces.resource/richfaces-queue.js"></script><script type="text/javascript" src="/faces/javax.faces.resource/richfaces-base-component.js"></script><script type="text/javascript" src="/faces/javax.faces.resource/status.js?ln=org.richfaces"></script><script type="text/javascript" src="/faces/javax.faces.resource/richfaces-event.js"></script><script type="text/javascript" src="/faces/javax.faces.resource/popupPanel.js?ln=org.richfaces"></script><script type="text/javascript" src="/faces/javax.faces.resource/popupPanelBorders.js?ln=org.richfaces"></script><script type="text/javascript" src="/faces/javax.faces.resource/popupPanelSizer.js?ln=org.richfaces"></script><link type="text/css" rel="stylesheet" href="/faces/rfRes/popupPanel.ecss?db=eAFjW6XuDgACrwEf&amp;ln=org.richfaces" /><script type="text/javascript" src="/faces/javax.faces.resource/jquery.position.js"></script><script type="text/javascript" src="/faces/javax.faces.resource/popup.js?ln=org.richfaces"></script><script type="text/javascript" src="/faces/javax.faces.resource/menuKeyNavigation.js?ln=org.richfaces"></script><script type="text/javascript" src="/faces/javax.faces.resource/menu-base.js?ln=org.richfaces"></script><script type="text/javascript" src="/faces/javax.faces.resource/menu.js?ln=org.richfaces"></script><link type="text/css" rel="stylesheet" href="/faces/rfRes/dropdownmenu.ecss?db=eAFjW6XuDgACrwEf&amp;ln=org.richfaces" /><script type="text/javascript" src="/faces/javax.faces.resource/menuitem.js?ln=org.richfaces"></script><script type="text/javascript" src="/faces/javax.faces.resource/menugroup.js?ln=org.richfaces"></script><script type="text/javascript" src="/faces/javax.faces.resource/message.js?ln=org.richfaces"></script><link type="text/css" rel="stylesheet" href="/faces/rfRes/msg.ecss?db=eAFjW6XuDgACrwEf&amp;ln=org.richfaces" /><script type="text/javascript" src="/faces/javax.faces.resource/json-dom.js?ln=org.richfaces"></script><script type="text/javascript" src="/faces/javax.faces.resource/jquery.effects.core.js?ln=org.richfaces"></script><script type="text/javascript" src="/faces/javax.faces.resource/jquery.effects.highlight.js?ln=org.richfaces"></script><script type="text/javascript" src="/faces/javax.faces.resource/JQuerySpinBtn.js?ln=org.richfaces"></script><script type="text/javascript" src="/faces/javax.faces.resource/calendar-utils.js?ln=org.richfaces"></script><script type="text/javascript" src="/faces/javax.faces.resource/calendar.js?ln=org.richfaces"></script><link type="text/css" rel="stylesheet" href="/faces/rfRes/calendar.ecss?db=eAFjW6XuDgACrwEf&amp;ln=org.richfaces" /><script type="text/javascript" src="/faces/javax.faces.resource/contextmenu.js?ln=org.richfaces"></script><link type="text/css" rel="stylesheet" href="/faces/rfRes/contextmenu.ecss?db=eAFjW6XuDgACrwEf&amp;ln=org.richfaces" /><script type="text/javascript" src="/faces/javax.faces.resource/component-control.js?ln=org.richfaces"></script><script type="text/javascript" src="/faces/javax.faces.resource/togglePanel.js?ln=org.richfaces"></script><script type="text/javascript" src="/faces/javax.faces.resource/tabPanel.js?ln=org.richfaces"></script><link type="text/css" rel="stylesheet" href="/faces/rfRes/tabPanel.ecss?db=eAFjW6XuDgACrwEf&amp;ln=org.richfaces" /><script type="text/javascript" src="/faces/javax.faces.resource/togglePanelItem.js?ln=org.richfaces"></script><script type="text/javascript" src="/faces/javax.faces.resource/tab.js?ln=org.richfaces"></script><script type="text/javascript" src="/faces/javax.faces.resource/datatable.js?ln=org.richfaces"></script><link type="text/css" rel="stylesheet" href="/faces/rfRes/datatable.ecss?db=eAFjW6XuDgACrwEf&amp;ln=org.richfaces" /><link type="text/css" rel="stylesheet" href="/faces/javax.faces.resource/com/sun/rave/web/ui/defaulttheme/css/css_master.css" /><link type="text/css" rel="stylesheet" href="/faces/javax.faces.resource/stylesheet.css" /><link type="text/css" rel="stylesheet" href="/faces/javax.faces.resource/custom/stylesheet.css" /><link type="text/css" rel="stylesheet" href="/faces/javax.faces.resource/impression.css" media="none" /><link type="text/css" rel="stylesheet" href="/faces/javax.faces.resource/planning.css" /><link type="text/css" rel="stylesheet" href="/faces/javax.faces.resource/custom/planning.css" /><link type="text/css" rel="stylesheet" href="/faces/javax.faces.resource/windowfiles/dhtmlwindow.css" /></head><body class="templatePrincipal"><div class="cacherImpression"><span id="j_idt13"><span style="display:none" class="rf-st-start"></span><span class="rf-st-stop"></span><script type="text/javascript">new RichFaces.ui.Status("j_idt13",{"onstart":function(event){jQuery('#statutAjaxGeneralStart').show(); jQuery('#statutAjaxGeneralStop').hide()},"onstop":function(event){jQuery('#statutAjaxGeneralStart').hide(); jQuery('#statutAjaxGeneralStop').show()}} )</script></span></div>
+<form id="form" name="form" method="post" action="/faces/Planning.xhtml" enctype="application/x-www-form-urlencoded">
+<input type="hidden" name="form" value="form" />
+<input id="form:largeurDivCenter" type="hidden" name="form:largeurDivCenter" /><div id="form:modalePatientez" style="visibility: hidden;"><div class="rf-pp-shade" id="form:modalePatientez_shade" style="z-index:100;"><button class="rf-pp-btn" id="form:modalePatientezFirstHref" name="form:modalePatientezfirstHref"></button></div><div class="rf-pp-cntr " id="form:modalePatientez_container" style="position: fixed; z-index:100; "><div class="rf-pp-shdw" id="form:modalePatientez_shadow"></div><div class="rf-pp-cnt-scrlr" id="form:modalePatientez_content_scroller"><div class="rf-pp-cnt" id="form:modalePatientez_content">
+            <div style="margin-left: auto; margin-right: auto; width: 200px; text-align: center; font-size: 150%"><img src="/faces/javax.faces.resource/connect_active.gif" /><br />
+                Chargement en cours.<br />
+                Merci de patienter.
+            </div></div></div></div><script type="text/javascript">new RichFaces.ui.PopupPanel("form:modalePatientez",{"height":100,"width":300} );</script></div><div id="form:cadreMiseEnPage" class="cadreMiseEnPage"><div id="form:headerSubview:header" class="header">
+                <div class="divLogoBarreBoutons"><a href="#" onclick="mojarra.jsfcljs(document.getElementById('form'),{'form:headerSubview:j_idt19':'form:headerSubview:j_idt19'},'');return false" class="divLogo"></a>
+
+                    <ul>
+                        <li class="icone"><a href="#" onclick="mojarra.jsfcljs(document.getElementById('form'),{'form:headerSubview:j_idt21':'form:headerSubview:j_idt21'},'');return false"><img src="/faces/javax.faces.resource/images/__home%2022-x%20sf.png" alt="WebAurion - Accueil" style="margin-bottom: -2px; margin-right: 5px;" title="WebAurion - Accueil" /></a><a href="#" onclick="mojarra.jsfcljs(document.getElementById('form'),{'form:headerSubview:j_idt23':'form:headerSubview:j_idt23'},'');return false">WebAurion - Accueil</a>
+                        </li>
+
+
+
+                    </ul>
+                </div>
+
+                <div class="divLogin">
+                    <div class="divLibelleLogin">
+                    </div>
+
+                    <div class="divLoginEtLangues"><span class="login">Gwendal GOURMELON  </span>
+                    </div>
+                </div></div><div id="form:Sidebar:sidebar" class="sidebar">
+                    <div class="box">
+
+                            
+                            <div class="titre "><span class="" style="">Mon compte</span>
+                            </div>
+
+                            
+                            <div class="body"><a href="#" style="" onclick="jsf.util.chain(this,event,'RichFaces.$(\'form:modalePatientez\').show()','mojarra.jsfcljs(document.getElementById(\'form\'),{\'form:Sidebar:j_idt275\':\'form:Sidebar:j_idt275\'},\'\')');return false" class="link ">Mes informations</a><a href="#" style="" onclick="jsf.util.chain(this,event,'RichFaces.$(\'form:modalePatientez\').show()','mojarra.jsfcljs(document.getElementById(\'form\'),{\'form:Sidebar:j_idt276\':\'form:Sidebar:j_idt276\'},\'\')');return false" class="link ">Ma position de compte</a>
+                            </div>
+
+                    </div>
+                    <div class="box">
+
+                            
+                            <div class="titre "><span class="" style="">Liens</span>
+                            </div>
+
+                            
+                            <div class="body"><a href="https://cas.isen.fr/home/index.html" style="" target="_blank" class="">Accueil ISEN-Lille</a><a href="#" style="" onclick="jsf.util.chain(this,event,'RichFaces.$(\'form:modalePatientez\').show()','mojarra.jsfcljs(document.getElementById(\'form\'),{\'form:Sidebar:j_idt279\':\'form:Sidebar:j_idt279\'},\'\')');return false" class="link ">Secouristes-Sauveteurs</a>
+                            </div>
+
+                    </div>
+                    <div class="box">
+
+                            
+                            <div class="titre "><span class="" style="">Scolarité</span>
+                            </div>
+
+                            
+                            <div class="body"><a href="#" style="" onclick="jsf.util.chain(this,event,'RichFaces.$(\'form:modalePatientez\').show()','mojarra.jsfcljs(document.getElementById(\'form\'),{\'form:Sidebar:j_idt284\':\'form:Sidebar:j_idt284\'},\'\')');return false" class="link ">Mes notes</a><a href="#" style="" onclick="jsf.util.chain(this,event,'RichFaces.$(\'form:modalePatientez\').show()','mojarra.jsfcljs(document.getElementById(\'form\'),{\'form:Sidebar:j_idt285\':\'form:Sidebar:j_idt285\'},\'\')');return false" class="link ">Moyennes de Classe</a><a href="#" style="font-weight: bold;" onclick="jsf.util.chain(this,event,'RichFaces.$(\'form:modalePatientez\').show()','mojarra.jsfcljs(document.getElementById(\'form\'),{\'form:Sidebar:j_idt286\':\'form:Sidebar:j_idt286\'},\'\')');return false" class="link ">Mes absences</a><a href="#" style="font-weight: bold;" onclick="jsf.util.chain(this,event,'RichFaces.$(\'form:modalePatientez\').show()','mojarra.jsfcljs(document.getElementById(\'form\'),{\'form:Sidebar:j_idt680\':\'form:Sidebar:j_idt680\'},\'\')');return false" class="link ">Mon planning</a><div class="rf-ddm-lbl rf-ddm-unsel  " id="form:Sidebar:j_idt59"><div class="rf-ddm-lbl-dec" id="form:Sidebar:j_idt59_label">Documents téléchargeables
+                                                    <div class="rf-ddm-nd"></div></div><div class="rf-ddm-pos"><div class="rf-ddm-lst" id="form:Sidebar:j_idt59_list" style="display:none;min-width:250px;"><div class="rf-ddm-lst-bg"><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt681"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">Mes bulletins</span><script type="text/javascript">new RichFaces.ui.MenuItem("form:Sidebar:j_idt681",{"onClickHandler":function(event){jsf.util.chain(this,event,"RichFaces.$('form:modalePatientez').show()","RichFaces.submitForm(event.form, event.itemId)");return false;}} );</script></div><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt682"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">Mes certificats de scolarité</span><script type="text/javascript">new RichFaces.ui.MenuItem("form:Sidebar:j_idt682",{"onClickHandler":function(event){jsf.util.chain(this,event,"RichFaces.$('form:modalePatientez').show()","RichFaces.submitForm(event.form, event.itemId)");return false;}} );</script></div><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt730"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">Charte informatique</span><script type="text/javascript">new RichFaces.ui.MenuItem("form:Sidebar:j_idt730",{"onClickHandler":function(event){jsf.util.chain(this,event,"RichFaces.$('form:modalePatientez').show()","RichFaces.submitForm(event.form, event.itemId)");return false;}} );</script></div><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt683"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">Règles de Fonctionnement des Epreuves</span><script type="text/javascript">new RichFaces.ui.MenuItem("form:Sidebar:j_idt683",{"onClickHandler":function(event){jsf.util.chain(this,event,"RichFaces.$('form:modalePatientez').show()","RichFaces.submitForm(event.form, event.itemId)");return false;}} );</script></div></div></div></div><script type="text/javascript">new
+                    RichFaces.ui.Menu("form:Sidebar:j_idt59",{"direction":"RB","jointPoint":"RT"} ).initiateGroups();</script></div><div class="rf-ddm-lbl rf-ddm-unsel  " id="form:Sidebar:j_idt293"><div class="rf-ddm-lbl-dec" id="form:Sidebar:j_idt293_label">Inscriptions
+                                                    <div class="rf-ddm-nd"></div></div><div class="rf-ddm-pos"><div class="rf-ddm-lst" id="form:Sidebar:j_idt293_list" style="display:none;min-width:250px;"><div class="rf-ddm-lst-bg"><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt731"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">Mes groupes</span><script type="text/javascript">new RichFaces.ui.MenuItem("form:Sidebar:j_idt731",{"onClickHandler":function(event){jsf.util.chain(this,event,"RichFaces.$('form:modalePatientez').show()","RichFaces.submitForm(event.form, event.itemId)");return false;}} );</script></div><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt732"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">Mes cours</span><script type="text/javascript">new RichFaces.ui.MenuItem("form:Sidebar:j_idt732",{"onClickHandler":function(event){jsf.util.chain(this,event,"RichFaces.$('form:modalePatientez').show()","RichFaces.submitForm(event.form, event.itemId)");return false;}} );</script></div><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt733"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">Conférences</span><div class="rf-ddm-nd"><div class="rf-ddm-lst rf-ddm-sublst" id="form:Sidebar:j_idt733_list" style="display:none;min-width:250px;"><div class="rf-ddm-lst-bg"><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt477"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">Mes conférences</span><script type="text/javascript">new RichFaces.ui.MenuItem("form:Sidebar:j_idt477",{"onClickHandler":function(event){jsf.util.chain(this,event,"RichFaces.$('form:modalePatientez').show()","RichFaces.submitForm(event.form, event.itemId)");return false;}} );</script></div><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt478"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">Conférences à venir</span><script type="text/javascript">new RichFaces.ui.MenuItem("form:Sidebar:j_idt478",{"onClickHandler":function(event){jsf.util.chain(this,event,"RichFaces.$('form:modalePatientez').show()","RichFaces.submitForm(event.form, event.itemId)");return false;}} );</script></div></div></div></div></div></div></div></div><script type="text/javascript">new
+                    RichFaces.ui.Menu("form:Sidebar:j_idt293",{"direction":"RB","jointPoint":"RT"} ).initiateGroups([{"id":"form:Sidebar:j_idt733"} ] );</script></div>
+                            </div>
+
+                    </div>
+                    <div class="box">
+
+                            
+                            <div class="titre "><span class="" style="">Plannings</span>
+                            </div>
+
+                            
+                            <div class="body"><div class="rf-ddm-lbl rf-ddm-unsel  " id="form:Sidebar:j_idt308"><div class="rf-ddm-lbl-dec" id="form:Sidebar:j_idt308_label">Groupes d'étudiants
+                                                    <div class="rf-ddm-nd"></div></div><div class="rf-ddm-pos"><div class="rf-ddm-lst" id="form:Sidebar:j_idt308_list" style="display:none;min-width:250px;"><div class="rf-ddm-lst-bg"><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt423"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">Cycle Informatique &amp; Réseaux</span><div class="rf-ddm-nd"><div class="rf-ddm-lst rf-ddm-sublst" id="form:Sidebar:j_idt423_list" style="display:none;min-width:250px;"><div class="rf-ddm-lst-bg"><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt300"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">CIR1</span><script type="text/javascript">new RichFaces.ui.MenuItem("form:Sidebar:j_idt300",{"onClickHandler":function(event){jsf.util.chain(this,event,"RichFaces.$('form:modalePatientez').show()","RichFaces.submitForm(event.form, event.itemId)");return false;}} );</script></div><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt301"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">CIR2</span><script type="text/javascript">new RichFaces.ui.MenuItem("form:Sidebar:j_idt301",{"onClickHandler":function(event){jsf.util.chain(this,event,"RichFaces.$('form:modalePatientez').show()","RichFaces.submitForm(event.form, event.itemId)");return false;}} );</script></div><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt479"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">CIR3</span><script type="text/javascript">new RichFaces.ui.MenuItem("form:Sidebar:j_idt479",{"onClickHandler":function(event){jsf.util.chain(this,event,"RichFaces.$('form:modalePatientez').show()","RichFaces.submitForm(event.form, event.itemId)");return false;}} );</script></div></div></div></div></div><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt427"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">Cycle Sciences de l'Ingénieur</span><div class="rf-ddm-nd"><div class="rf-ddm-lst rf-ddm-sublst" id="form:Sidebar:j_idt427_list" style="display:none;min-width:250px;"><div class="rf-ddm-lst-bg"><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt314"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">CPG1</span><script type="text/javascript">new RichFaces.ui.MenuItem("form:Sidebar:j_idt314",{"onClickHandler":function(event){jsf.util.chain(this,event,"RichFaces.$('form:modalePatientez').show()","RichFaces.submitForm(event.form, event.itemId)");return false;}} );</script></div><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt315"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">CPG2</span><script type="text/javascript">new RichFaces.ui.MenuItem("form:Sidebar:j_idt315",{"onClickHandler":function(event){jsf.util.chain(this,event,"RichFaces.$('form:modalePatientez').show()","RichFaces.submitForm(event.form, event.itemId)");return false;}} );</script></div><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt480"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">CSI3</span><script type="text/javascript">new RichFaces.ui.MenuItem("form:Sidebar:j_idt480",{"onClickHandler":function(event){jsf.util.chain(this,event,"RichFaces.$('form:modalePatientez').show()","RichFaces.submitForm(event.form, event.itemId)");return false;}} );</script></div><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt481"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">CSIU3</span><script type="text/javascript">new RichFaces.ui.MenuItem("form:Sidebar:j_idt481",{"onClickHandler":function(event){jsf.util.chain(this,event,"RichFaces.$('form:modalePatientez').show()","RichFaces.submitForm(event.form, event.itemId)");return false;}} );</script></div></div></div></div></div><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt432"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">Cycle M</span><div class="rf-ddm-nd"><div class="rf-ddm-lst rf-ddm-sublst" id="form:Sidebar:j_idt432_list" style="display:none;min-width:250px;"><div class="rf-ddm-lst-bg"><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt319"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">M1</span><script type="text/javascript">new RichFaces.ui.MenuItem("form:Sidebar:j_idt319",{"onClickHandler":function(event){jsf.util.chain(this,event,"RichFaces.$('form:modalePatientez').show()","RichFaces.submitForm(event.form, event.itemId)");return false;}} );</script></div><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt320"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">M2</span><script type="text/javascript">new RichFaces.ui.MenuItem("form:Sidebar:j_idt320",{"onClickHandler":function(event){jsf.util.chain(this,event,"RichFaces.$('form:modalePatientez').show()","RichFaces.submitForm(event.form, event.itemId)");return false;}} );</script></div></div></div></div></div><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt435"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">Cycle Apprentissage</span><div class="rf-ddm-nd"><div class="rf-ddm-lst rf-ddm-sublst" id="form:Sidebar:j_idt435_list" style="display:none;min-width:250px;"><div class="rf-ddm-lst-bg"><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt322"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">AP3</span><script type="text/javascript">new RichFaces.ui.MenuItem("form:Sidebar:j_idt322",{"onClickHandler":function(event){jsf.util.chain(this,event,"RichFaces.$('form:modalePatientez').show()","RichFaces.submitForm(event.form, event.itemId)");return false;}} );</script></div><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt323"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">AP4</span><script type="text/javascript">new RichFaces.ui.MenuItem("form:Sidebar:j_idt323",{"onClickHandler":function(event){jsf.util.chain(this,event,"RichFaces.$('form:modalePatientez').show()","RichFaces.submitForm(event.form, event.itemId)");return false;}} );</script></div><div class="rf-ddm-itm rf-ddm-itm-unsel " id="form:Sidebar:j_idt493"><span class="rf-ddm-itm-ic "><span class="rf-ddm-emptyIcon"></span></span><span class="rf-ddm-itm-lbl ">AP5</span><script type="text/javascript">new RichFaces.ui.MenuItem("form:Sidebar:j_idt493",{"onClickHandler":function(event){jsf.util.chain(this,event,"RichFaces.$('form:modalePatientez').show()","RichFaces.submitForm(event.form, event.itemId)");return false;}} );</script></div></div></div></div></div></div></div></div><script type="text/javascript">new
+                    RichFaces.ui.Menu("form:Sidebar:j_idt308",{"direction":"RB","jointPoint":"RT"} ).initiateGroups([{"id":"form:Sidebar:j_idt423"} ,{"id":"form:Sidebar:j_idt427"} ,{"id":"form:Sidebar:j_idt432"} ,{"id":"form:Sidebar:j_idt435"} ] );</script></div><a href="#" style="" onclick="jsf.util.chain(this,event,'RichFaces.$(\'form:modalePatientez\').show()','mojarra.jsfcljs(document.getElementById(\'form\'),{\'form:Sidebar:j_idt334\':\'form:Sidebar:j_idt334\'},\'\')');return false" class="link ">Salles disponibles</a>
+                            </div>
+
+                    </div></div><div id="form:Center" class="center portail_menu_gauche"></div><div class="footer"></div></div><input type="hidden" name="javax.faces.ViewState" id="j_id1:javax.faces.ViewState:0" value="-5201078588784842288:-7137157216323780628" autocomplete="off" />
+</form></body>
+</html>
