@@ -1,6 +1,22 @@
-import requests, re, locale
+import requests, re, locale, sys
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, date, timedelta
+
+if len(sys.argv) <= 1:
+    print("Usage: python3 PlanningAP3.py <year> [start date] [end date]")
+    print("Example: python3 PlanningAP3.py AP3 09/10/2017 29/10/2017")
+    exit()
+if len(sys.argv) >= 3:
+    startDate = sys.argv[2]
+else:
+    startDate = datetime.strftime(date.today(), "%d/%m/%Y")
+if len(sys.argv) >= 4:
+    endDate = sys.argv[3]
+else:
+    endDate = datetime.strftime(date.today() + timedelta(days=6), "%d/%m/%Y")
+
+print("Start date: " + startDate)
+print("End date: " + endDate)
 
 url = "https://aurion-lille.isen.fr/faces/Planning.xhtml"
 events = []
@@ -22,7 +38,7 @@ with requests.Session() as s:
                "form:largeurDivCenter": "1142"}
 
     for DOMInput in parser.find_all("span", "rf-ddm-itm-lbl"):
-        if "AP3" in DOMInput.get_text():
+        if sys.argv[1] in DOMInput.get_text():
             payload[DOMInput.parent["id"]] = DOMInput.parent["id"]
     payload["javax.faces.ViewState"] = parser.select_one("#j_id1:javax.faces.ViewState:0")["value"]
     print("Payload: " + str(payload))
@@ -33,10 +49,10 @@ with requests.Session() as s:
     payload = {"form": "form",
                "form:largeurDivCenter": "1154",
                "form:j_idt263-value": "false",
-               "form:calendarDebutInputDate": "09/10/2017",
-               "form:calendarDebutInputCurrentDate": "10/2017",
-               "form:calendarFinInputDate": "13/10/2017",
-               "form:calendarFinInputCurrentDate": "10/2017",
+               "form:calendarDebutInputDate": startDate,
+               "form:calendarDebutInputCurrentDate": "/".join(startDate.split("/")[1:]),
+               "form:calendarFinInputDate": endDate,
+               "form:calendarFinInputCurrentDate": "/".join(endDate.split("/")[1:]),
                "form:dataTableFavori:j_idt150": "on",
                "form:dataTableFavori:0:j_idt151": "on",
                "javax.faces.source": "form:j_idt110",
