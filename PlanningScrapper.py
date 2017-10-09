@@ -3,8 +3,8 @@ from bs4 import BeautifulSoup
 from datetime import datetime, date, timedelta
 
 if len(sys.argv) <= 1:
-    print("Usage: python3 PlanningAP3.py <year> [start date] [end date]")
-    print("Example: python3 PlanningAP3.py AP3 09/10/2017 29/10/2017")
+    print("Usage: python3 PlanningScrapper.py <year> [start date] [end date]")
+    print("Example: python3 PlanningScrapper.py AP3 09/10/2017 29/10/2017")
     exit()
 if len(sys.argv) >= 3:
     startDate = sys.argv[2]
