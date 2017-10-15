@@ -15,6 +15,10 @@ args = argsParser.parse_args()
 print("Start date: " + args.startDate)
 print("End date: " + args.endDate)
 
+if (datetime.strptime(args.endDate, "%d/%m/%Y") - datetime.strptime(args.startDate, "%d/%m/%Y")).days > 31:
+	print("Can't fetch more than 31 days")
+	exit()
+
 url = "https://aurion-lille.isen.fr/faces/Planning.xhtml"
 eventsData = []
 eventsTeacher = []
