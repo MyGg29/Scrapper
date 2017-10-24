@@ -105,8 +105,14 @@ with requests.Session() as s:
 	## built in the same order than the events, thus having each element in the
 	## events list correspond to an element in the teachers list with the same
 	## index
-	for DOMInput in parser.find_all("tr", id = re.compile(".*j_idt212:0")):
-		eventsTeacher.append({"teacher": DOMInput.contents[1].get_text() + " " + DOMInput.contents[0].get_text()})
+	for DOMInput in parser.find_all("tbody", id = re.compile(".*j_idt212:tb")):
+		teachersList = []
+		for content in DOMInput.contents:
+			if content.contents[0].get_text() == "":
+				teachersList = None
+			else:
+				teachersList.append(content.contents[1].get_text() + " " + content.contents[0].get_text())
+		eventsTeacher.append({"teachers": teachersList})
 
 	## We build the list of locations. If nothing goes wrong, it should be
 	## built in the same order than the events, thus having each element in the
@@ -125,8 +131,11 @@ with requests.Session() as s:
 		icalString += "DTSTART:" + datetime.strftime(eventsData[i]["startingTime"], "%Y%m%dT%H%M%S") + "\r\n"
 		icalString += "DTEND:" + datetime.strftime(eventsData[i]["stoppingTime"], "%Y%m%dT%H%M%S") + "\r\n"
 		icalString += "SUMMARY:" + eventsData[i]["title"] + "\r\n"
-		icalString += "ORGANIZER:" + eventsTeacher[i]["teacher"] + "\r\n"
-		icalString += "DESCRIPTION:" + eventsTeacher[i]["teacher"] + "\r\n"
+		if eventsTeacher[i]["teachers"] != None:
+			for teacher in eventsTeacher[i]["teachers"]:
+				icalString += "ATTENDEE:" + teacher + "\r\n"
+			icalString += "DESCRIPTION:" + ','.join(eventsTeacher[i]["teachers"]) + "\r\n"
+
 		icalString += "LOCATION:" + eventsLocation[i]["location"] + "\r\n"
 		icalString += "END:VEVENT\r\n"
 
