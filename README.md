@@ -42,6 +42,7 @@ optional arguments:
   -s <start date>  Start day
   -e <end date>    End day
   -o <filename>    Name for the outputted file, without the extension
+  -v               Verbose mode
   ```
 
 Dependencies: python-requests python-beautifulsoup4

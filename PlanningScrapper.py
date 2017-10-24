@@ -11,6 +11,7 @@ argsParser.add_argument("-g", help = "Set the group", required = True, metavar =
 argsParser.add_argument("-s", help = "Start day", metavar = "<start date>", default = datetime.strftime(date.today(), "%d/%m/%Y"), dest = "startDate")
 argsParser.add_argument("-e", help = "End day", metavar = "<end date>", default = datetime.strftime(date.today() + timedelta(days=6), "%d/%m/%Y"), dest = "endDate")
 argsParser.add_argument("-o", help = "Name for the outputted file, without the extension", metavar = "<filename>", required = True, dest = "outputFile")
+argsParser.add_argument("-v", help = "Verbose mode", dest = "verbose", action = "store_true")
 args = argsParser.parse_args()
 
 ## Display the dates
@@ -34,16 +35,18 @@ icalString = ""
 ## We set it in French because the months and weekdays are in French
 if sys.platform in ['win32']:
 	locale.setlocale(locale.LC_ALL, 'fra')
-	print("Locale set for Windows platform")
+	print("Locale set on French for Windows platform")
 else:
 	locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
-	print("Locale set for Unix platform")
+	print("Locale set on French for Unix platform")
 
 ## Open a session and start retrieving data
 with requests.Session() as s:
 	r = s.get(url)
-	print("Response URL: " + r.url)
-	print("Cookies: " + str(s.cookies))
+
+	if args.verbose:
+		print("Response URL: " + r.url)
+		print("Cookies: " + str(s.cookies))
 
 	parser = BeautifulSoup(r.text.encode(encoding='UTF-8',errors='strict'), 'html.parser')
 	payload = {"form": "form",
@@ -56,12 +59,18 @@ with requests.Session() as s:
 			payload[DOMInput.parent["id"]] = DOMInput.parent["id"]
 	## Then we need something called "javax.faces.ViewState", whatever it is
 	payload["javax.faces.ViewState"] = parser.select_one("#j_id1:javax.faces.ViewState:0")["value"]
-	print("Payload: " + str(payload))
+
+	if args.verbose:
+		print("Payload: " + str(payload))
+		
 	r = s.post(url, params = payload)
 	## By now, we should have received https://aurion-lille.isen.fr/faces/ChoixPlanning.xhtml
-	print("Response URL: " + r.url)
+
+	if args.verbose:
+		print("Response URL: " + r.url)
+		print("Cookies: " + str(s.cookies))
+
 	parser = BeautifulSoup(r.text.encode(encoding='UTF-8',errors='strict'), 'html.parser')
-	print("Cookies: " + str(s.cookies))
 	payload = {"form": "form",
 			   "form:largeurDivCenter": "1154",
 			   "form:j_idt263-value": "false",
@@ -81,7 +90,10 @@ with requests.Session() as s:
 			   "AJAX:EVENTS_COUNT": "1",
 			   "javax.faces.partial.ajax": "true"}
 	payload["javax.faces.ViewState"] = parser.select_one("#j_id1:javax.faces.ViewState:0")["value"]
-	print("Payload: " + str(payload))
+
+	if args.verbose:
+		print("Payload: " + str(payload))
+
 	r = s.post(r.url, params = payload)
 
 	## Now for some parsing of the page
