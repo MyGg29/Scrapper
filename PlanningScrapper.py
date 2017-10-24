@@ -95,11 +95,21 @@ with requests.Session() as s:
 		## The sibling of "Au" holds the ending time
 		if DOMInput.get_text() == "Au":
 			classEndHour = DOMInput.parent.parent.parent.contents[7].get_text()
+
 		## The sibling of "Matière" holds the class's subject
 		if DOMInput.get_text() == "Matière":
+			classTitle = DOMInput.parent.parent.parent.contents[3].get_text()
+
+		if DOMInput.get_text() == "Type d'enseignement":
+			classType = DOMInput.parent.parent.parent.contents[3].get_text()
+			if classType == "Travaux Dirigés":
+				classType = "TD"
+			elif classType == "Travaux Pratiques":
+				classType = "TP"
 			eventsData.append({"startingTime": datetime.strptime(classDate + " " + classStartHour, "%A %d %B %Y %H:%M"),
 							   "stoppingTime": datetime.strptime(classDate + " " + classEndHour, "%A %d %B %Y %H:%M"),
-							   "title": DOMInput.parent.parent.parent.contents[3].get_text()})
+							   "title": ', '.join([classType, classTitle]),
+							   "type": classType})
 
 	## We build the list of teachers. If nothing goes wrong, it should be
 	## built in the same order than the events, thus having each element in the
@@ -131,10 +141,11 @@ with requests.Session() as s:
 		icalString += "DTSTART:" + datetime.strftime(eventsData[i]["startingTime"], "%Y%m%dT%H%M%S") + "\r\n"
 		icalString += "DTEND:" + datetime.strftime(eventsData[i]["stoppingTime"], "%Y%m%dT%H%M%S") + "\r\n"
 		icalString += "SUMMARY:" + eventsData[i]["title"] + "\r\n"
+		icalString += "CATEGORIES:" + eventsData[i]["type"] + "\r\n"
 		if eventsTeacher[i]["teachers"] != None:
 			for teacher in eventsTeacher[i]["teachers"]:
 				icalString += "ATTENDEE:" + teacher + "\r\n"
-			icalString += "DESCRIPTION:" + ','.join(eventsTeacher[i]["teachers"]) + "\r\n"
+			icalString += "DESCRIPTION:" + eventsData[i]["type"] + ", " + '/'.join(eventsTeacher[i]["teachers"]) + "\r\n"
 
 		icalString += "LOCATION:" + eventsLocation[i]["location"] + "\r\n"
 		icalString += "END:VEVENT\r\n"
