@@ -1,6 +1,6 @@
 import requests, argparse
 from bs4 import BeautifulSoup
-from CASLogin import CASSession
+from CASSession import CASSession
 
 ## Setup the argument parser and parse them
 argsParser = argparse.ArgumentParser(description = "Gets ISEN's classrooms availability in CSV. Outputs an .csv file in the current directory.", prog = "python3 RoomsExtractor.py")

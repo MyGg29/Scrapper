@@ -4,13 +4,15 @@ from bs4 import BeautifulSoup
 class CASSession:
 
     url = "https://cas.isen.fr/login"
-    password = "YOURPASSWORDHERE"
-    username = "YOURUSERNAMEHERE"
+    password = None
+    username = None
 
     def __init__(self):
         print("Initiating CASSession object")
 
     def getSession(self):
+        if self.password == None or self.username == None:
+            raise Exception("Missing password or username !")
         reqSession = requests.Session()
         response = reqSession.get(self.url)
 

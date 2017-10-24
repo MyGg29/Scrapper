@@ -19,6 +19,8 @@ session = CASSession()
 session.setUsername("YOURUSERNAMEHERE")
 session.setPassword("YOURPASSWORDHERE")
 
+# Will throw and Exception if no password
+# or username is set
 with session as s:
     # Do things here that you would do with a normal
     # requests Session() object like s.get(url)
