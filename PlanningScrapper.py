@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 from datetime import datetime, date, timedelta
 import argparse
 
+MAX_DAYS = 40
+
 ## Setup the argument parser and parse them
 argsParser = argparse.ArgumentParser(description = "Scraps ISEN's planning website. Outputs an .ics file in the current directory.", prog = "python3 PlanningScrapper.py")
 argsParser.add_argument("-g", help = "Set the group", required = True, metavar = "<group>", dest = "studentGroup")
@@ -14,9 +16,10 @@ args = argsParser.parse_args()
 ## Display the dates
 print("Start date: " + args.startDate)
 print("End date: " + args.endDate)
+print("We'll try to fetch " + str((datetime.strptime(args.endDate, "%d/%m/%Y") - datetime.strptime(args.startDate, "%d/%m/%Y")).days) + " days")
 
-if (datetime.strptime(args.endDate, "%d/%m/%Y") - datetime.strptime(args.startDate, "%d/%m/%Y")).days > 31:
-	print("Can't fetch more than 31 days")
+if (datetime.strptime(args.endDate, "%d/%m/%Y") - datetime.strptime(args.startDate, "%d/%m/%Y")).days > MAX_DAYS:
+	print("Can't fetch more than " + str(MAX_DAYS) + " days")
 	exit()
 
 url = "https://aurion-lille.isen.fr/faces/Planning.xhtml"
