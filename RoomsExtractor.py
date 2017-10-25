@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from CASSession import CASSession
 
 ## Setup the argument parser and parse them
-argsParser = argparse.ArgumentParser(description = "Gets ISEN's classrooms availability in CSV. Outputs an .csv file in the current directory.", prog = "python3 RoomsExtractor.py")
+argsParser = argparse.ArgumentParser(description = "Gets ISEN's classrooms availability in CSV. Outputs a .csv file in the current directory.", prog = "python3 RoomsExtractor.py")
 argsParser.add_argument("-u", help = "Username", required = True, metavar = "<username>", dest = "username")
 argsParser.add_argument("-p", help = "Password", required = True, metavar = "<password>", dest = "password")
 argsParser.add_argument("-o", help = "Name for the outputted file, without the extension", metavar = "<filename>", required = True, dest = "outputFile")

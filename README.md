@@ -12,7 +12,7 @@ Import this class to get a requests.Session() object which is connected to ISEN'
 You need your own credentials to use this class.
 
 Usage example:
-```
+```python
 import CASSession
 
 session = CASSession()
@@ -53,7 +53,7 @@ Dependencies: python-requests python-beautifulsoup4
 usage: python3 RoomsExtractor.py [-h] -u <username> -p <password> -o
                                  <filename>
 
-Gets ISEN's classrooms availability in CSV. Outputs an .csv file in the
+Gets ISEN's classrooms availability in CSV. Outputs a .csv file in the
 current directory.
 
 optional arguments:
