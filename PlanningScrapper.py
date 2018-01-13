@@ -12,6 +12,7 @@ argsParser.add_argument("-s", help = "Start day", metavar = "<start date>", defa
 argsParser.add_argument("-e", help = "End day", metavar = "<end date>", default = datetime.strftime(date.today() + timedelta(days=6), "%d/%m/%Y"), dest = "endDate")
 argsParser.add_argument("-o", help = "Name for the outputted file, without the extension", metavar = "<filename>", required = True, dest = "outputFile")
 argsParser.add_argument("-v", help = "Verbose mode", dest = "verbose", action = "store_true")
+argsParser.add_argument("-m", help = "Save the events in multiple files", action = "store_true", dest = "multiple")
 args = argsParser.parse_args()
 
 ## Display the dates
@@ -27,8 +28,6 @@ url = "https://aurion-lille.isen.fr/faces/Planning.xhtml"
 eventsData = []
 eventsTeacher = []
 eventsLocation = []
-
-icalString = ""
 
 ## Set the locale depending on the system
 ## (Windows is using a different locale string)
@@ -62,7 +61,7 @@ with requests.Session() as s:
 
 	if args.verbose:
 		print("Payload: " + str(payload))
-		
+
 	r = s.post(url, params = payload)
 	## By now, we should have received https://aurion-lille.isen.fr/faces/ChoixPlanning.xhtml
 
@@ -146,27 +145,40 @@ with requests.Session() as s:
 	for DOMInput in parser.find_all("td", id = re.compile(".*0:j_idt205")):
 		eventsLocation.append({"location": DOMInput.get_text()})
 
-	## Start creating the icalendar-compatible file
-	icalString += "BEGIN:VCALENDAR\r\n"
+	#icalString = ""
+	if not args.multiple:
+		## Start creating the icalendar-compatible file
+		icalString = "BEGIN:VCALENDAR\r\n"
 
 	## Create all the events in the VEVENT format
 	for i in range(0, len(eventsData)):
+		if args.multiple:
+			icalString = "BEGIN:VCALENDAR\r\n"
+
 		icalString += "BEGIN:VEVENT\r\n"
 		icalString += "UID:" + str(i) + "\r\n"
 		icalString += "DTSTART:" + datetime.strftime(eventsData[i]["startingTime"], "%Y%m%dT%H%M%S") + "\r\n"
 		icalString += "DTEND:" + datetime.strftime(eventsData[i]["stoppingTime"], "%Y%m%dT%H%M%S") + "\r\n"
-		icalString += "SUMMARY:" + eventsData[i]["title"] + "\r\n"
+		icalString += "SUMMARY:" + eventsData[i]["title"].replace(",", " -") + "\r\n"
 		icalString += "CATEGORIES:" + eventsData[i]["type"] + "\r\n"
 		if eventsTeacher[i]["teachers"] != None:
 			for teacher in eventsTeacher[i]["teachers"]:
 				icalString += "ATTENDEE:" + teacher + "\r\n"
-			icalString += "DESCRIPTION:" + eventsData[i]["type"] + ", " + '/'.join(eventsTeacher[i]["teachers"]) + "\r\n"
+			icalString += "DESCRIPTION:" + eventsData[i]["type"] + " - " + '/'.join(eventsTeacher[i]["teachers"]) + "\r\n"
 
 		icalString += "LOCATION:" + eventsLocation[i]["location"] + "\r\n"
 		icalString += "END:VEVENT\r\n"
 
-	icalString += "END:VCALENDAR\r\n"
+		if args.multiple:
+			icalString += "END:VCALENDAR\r\n"
 
-	## Write to the output file
-	with open(args.outputFile + ".ics", "w") as f:
-		f.write(icalString)
+			## Write to the output file
+			with open(args.outputFile + str(i) + ".ics", "w") as f:
+				f.write(icalString)
+
+	if not args.multiple:
+		icalString += "END:VCALENDAR\r\n"
+
+		## Write to the output file
+		with open(args.outputFile + ".ics", "w") as f:
+			f.write(icalString)
