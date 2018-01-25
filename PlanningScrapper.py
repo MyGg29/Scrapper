@@ -1,9 +1,15 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+#TODO: handle multiple locations
+
 import requests, re, locale, sys
 from bs4 import BeautifulSoup
 from datetime import datetime, date, timedelta
 import argparse
 
 MAX_DAYS = 40
+GROUPS = ["CIR1", "CIR2", "CIR3", "AP3", "AP4", "AP5", "CPG1", "CPG2", "CSI3", "CSIU3", "M1", "M2"]
 
 def checkForError(response):
 	if response.url.split("?")[0] == "https://cas.isen.fr/login":
@@ -11,6 +17,25 @@ def checkForError(response):
 		return True
 	else:
 		return False
+
+def prettyPrintDict(dictionary):
+	firstColumnSize = keysMaxLength(dictionary.keys())
+	firstColumnFormat = "{:{c}<" + str(firstColumnSize) + "}"
+	secondColumnSize = keysMaxLength(dictionary.values())
+	secondColumnFormat = "{:{c}<" + str(secondColumnSize) + "}"
+	print("|-" + firstColumnFormat.format("", c="-") + "-|-" + secondColumnFormat.format("", c="-") + "-|")
+	print("| " + firstColumnFormat.format("Key", c=" ") + " | " + secondColumnFormat.format("Value", c=" ") + " |")
+	print("|-" + firstColumnFormat.format("", c="-") + "-|-" + secondColumnFormat.format("", c="-") + "-|")
+	for key, item in dictionary.items():
+		print("| " + firstColumnFormat.format(key, c=" ") + " | " + secondColumnFormat.format(item, c=" ") + " |")
+	print("|-" + firstColumnFormat.format("", c="-") + "-|-" + secondColumnFormat.format("", c="-") + "-|")
+
+def keysMaxLength(keys):
+	max = 0
+	for key in keys:
+		if len(key) > max:
+			max = len(key)
+	return max
 
 if __name__ == '__main__':
 	## Setup the argument parser and parse them
@@ -22,6 +47,10 @@ if __name__ == '__main__':
 	argsParser.add_argument("-v", help = "Verbose mode", dest = "verbose", action = "store_true")
 	argsParser.add_argument("-m", help = "Save the events in multiple files", action = "store_true", dest = "multiple")
 	args = argsParser.parse_args()
+
+	if args.studentGroup not in GROUPS:
+		print("No group like " + args.studentGroup)
+		quit()
 
 	## Display the dates
 	print("Start date: " + args.startDate)
@@ -43,10 +72,12 @@ if __name__ == '__main__':
 	## We set it in French because the months and weekdays are in French
 	if sys.platform in ['win32']:
 		locale.setlocale(locale.LC_ALL, 'fra')
-		print("Locale set on French for Windows platform")
+		if args.verbose:
+			print("Locale set on French for Windows platform")
 	else:
 		locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
-		print("Locale set on French for Unix platform")
+		if args.verbose:
+			print("Locale set on French for Unix platform")
 
 	## Open a session and start retrieving data
 	with requests.Session() as s:
@@ -71,7 +102,8 @@ if __name__ == '__main__':
 		payload["javax.faces.ViewState"] = parser.select_one("#j_id1:javax.faces.ViewState:0")["value"]
 
 		if args.verbose:
-			print("Payload: " + str(payload))
+			print("Payload: ")
+			prettyPrintDict(payload)
 
 		r = s.post(url, params = payload)
 		if checkForError(r):
@@ -91,7 +123,6 @@ if __name__ == '__main__':
 				   "form:calendarFinInputDate": args.endDate,
 				   "form:calendarFinInputCurrentDate": "/".join(args.endDate.split("/")[1:]),
 				   "form:dataTableFavori:j_idt263": "on",
-				   "form:dataTableFavori:0:j_idt264": "on",
 				   "javax.faces.source": "form:j_idt223",
 				   "javax.faces.partial.event": "click",
 				   "javax.faces.partial.execute": "form:j_idt223 @component",
@@ -101,10 +132,14 @@ if __name__ == '__main__':
 				   "rfExt": "null",
 				   "AJAX:EVENTS_COUNT": "1",
 				   "javax.faces.partial.ajax": "true"}
+		listOfPlannings = parser.find_all("tbody", id = "form:dataTableFavori:tb")
+		for planningIndex in range(len(listOfPlannings[0].contents)):
+			payload["form:dataTableFavori:" + str(planningIndex) + ":j_idt264"] = "on"
 		payload["javax.faces.ViewState"] = parser.select_one("#j_id1:javax.faces.ViewState:0")["value"]
 
 		if args.verbose:
-			print("Payload: " + str(payload))
+			print("Payload: ")
+			prettyPrintDict(payload)
 
 		r = s.post(r.url, params = payload)
 		if checkForError(r):
@@ -163,19 +198,31 @@ if __name__ == '__main__':
 		## the events list correspond to an element in the subjects list with
 		## the same index
 		for DOMInput in parser.find_all("tbody", id= re.compile(".*j_idt252:tb")):
-			for content in DOMInput.contents:
-				## If it's empty, we set the subject to None
-				if content.contents[0].get_text() == "":
-					eventsSubject.append({"subjects": None})
-				else:
-					eventsSubject.append({"subjects": ''.join(content.contents[0].get_text().split('-')[:-1])})
+			if len(DOMInput.contents) == 0 or DOMInput.contents[0].contents[0].get_text() == "":
+				eventsSubject.append({"subjects": None})
+			else:
+				eventsSubject.append({"subjects": DOMInput.contents[0].contents[0].get_text()})
 
 		## We build the list of locations. If nothing goes wrong, it should be
 		## built in the same order than the events, thus having each element in
 		## the events list correspond to an element in the locations list with
 		## the same index
-		for DOMInput in parser.find_all("td", id = re.compile(".*0:j_idt206")):
-			eventsLocation.append({"location": DOMInput.get_text()})
+		for DOMInput in parser.find_all("tbody", id= re.compile(".*j_idt205:tb")):
+			if len(DOMInput.contents) == 0 or DOMInput.contents[0].contents[0].get_text() == "":
+				eventsLocation.append({"location": None})
+			else:
+				eventsLocation.append({"location": DOMInput.contents[0].contents[0].get_text()})
+
+		if args.verbose:
+			print("We have :")
+			print("- " + str(len(eventsData)) + " events")
+			print("- " + str(len(eventsTeacher)) + " teachers")
+			print("- " + str(len(eventsLocation)) + " locations")
+			if len(eventsData) == len(eventsTeacher) and len(eventsTeacher) == len(eventsLocation):
+				print("All clear!")
+
+		if len(eventsData) != len(eventsTeacher) or len(eventsTeacher) != len(eventsLocation):
+			print("We have incomplete data. Skipping.")
 
 		#icalString = ""
 		if not args.multiple:
@@ -191,22 +238,21 @@ if __name__ == '__main__':
 			icalString += "UID:" + str(i) + "\r\n"
 			icalString += "DTSTART:" + datetime.strftime(eventsData[i]["startingTime"], "%Y%m%dT%H%M%S") + "\r\n"
 			icalString += "DTEND:" + datetime.strftime(eventsData[i]["stoppingTime"], "%Y%m%dT%H%M%S") + "\r\n"
-			#icalString += "SUMMARY:" + eventsData[i]["title"].replace(",", " -") + "\r\n"
 			icalString += "SUMMARY:" + (eventsSubject[i]["subjects"].replace(",", " -") if eventsSubject[i]["subjects"] is not None else eventsData[i]["title"].replace(",", " -")) + "\r\n"
 			icalString += "CATEGORIES:" + eventsData[i]["type"] + "\r\n"
 			if eventsTeacher[i]["teachers"] is not None:
 				for teacher in eventsTeacher[i]["teachers"]:
 					icalString += "ATTENDEE:" + teacher + "\r\n"
 				icalString += "DESCRIPTION:" + eventsData[i]["type"] + " - " + '/'.join(eventsTeacher[i]["teachers"]) + "\r\n"
-
-			icalString += "LOCATION:" + eventsLocation[i]["location"] + "\r\n"
+			if eventsLocation[i]["location"] is not None:
+				icalString += "LOCATION:" + eventsLocation[i]["location"] + "\r\n"
 			icalString += "END:VEVENT\r\n"
 
 			if args.multiple:
 				icalString += "END:VCALENDAR\r\n"
 
 				## Write to the output file
-				with open(args.outputFile + str(i) + ".ics", "w") as f:
+				with open(args.outputFile + str(i).zfill(3) + ".ics", "w") as f:
 					f.write(icalString)
 
 		if not args.multiple:
