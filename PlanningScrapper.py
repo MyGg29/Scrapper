@@ -5,180 +5,213 @@ import argparse
 
 MAX_DAYS = 40
 
-## Setup the argument parser and parse them
-argsParser = argparse.ArgumentParser(description = "Scraps ISEN's planning website. Outputs an .ics file in the current directory.", prog = "python3 PlanningScrapper.py")
-argsParser.add_argument("-g", help = "Set the group", required = True, metavar = "<group>", dest = "studentGroup")
-argsParser.add_argument("-s", help = "Start day", metavar = "<start date>", default = datetime.strftime(date.today(), "%d/%m/%Y"), dest = "startDate")
-argsParser.add_argument("-e", help = "End day", metavar = "<end date>", default = datetime.strftime(date.today() + timedelta(days=6), "%d/%m/%Y"), dest = "endDate")
-argsParser.add_argument("-o", help = "Name for the outputted file, without the extension", metavar = "<filename>", required = True, dest = "outputFile")
-argsParser.add_argument("-v", help = "Verbose mode", dest = "verbose", action = "store_true")
-argsParser.add_argument("-m", help = "Save the events in multiple files", action = "store_true", dest = "multiple")
-args = argsParser.parse_args()
+def checkForError(response):
+	if response.url.split("?")[0] == "https://cas.isen.fr/login":
+		print("Login requested... You may wait for a few seconds")
+		return True
+	else:
+		return False
 
-## Display the dates
-print("Start date: " + args.startDate)
-print("End date: " + args.endDate)
-print("We'll try to fetch " + str((datetime.strptime(args.endDate, "%d/%m/%Y") - datetime.strptime(args.startDate, "%d/%m/%Y")).days) + " days")
+if __name__ == '__main__':
+	## Setup the argument parser and parse them
+	argsParser = argparse.ArgumentParser(description = "Scraps ISEN's planning website. Outputs an .ics file in the current directory.", prog = "python3 PlanningScrapper.py")
+	argsParser.add_argument("-g", help = "Set the group", required = True, metavar = "<group>", dest = "studentGroup")
+	argsParser.add_argument("-s", help = "Start day", metavar = "<start date>", default = datetime.strftime(date.today(), "%d/%m/%Y"), dest = "startDate")
+	argsParser.add_argument("-e", help = "End day", metavar = "<end date>", default = datetime.strftime(date.today() + timedelta(days=6), "%d/%m/%Y"), dest = "endDate")
+	argsParser.add_argument("-o", help = "Name for the outputted file, without the extension", metavar = "<filename>", required = True, dest = "outputFile")
+	argsParser.add_argument("-v", help = "Verbose mode", dest = "verbose", action = "store_true")
+	argsParser.add_argument("-m", help = "Save the events in multiple files", action = "store_true", dest = "multiple")
+	args = argsParser.parse_args()
 
-if (datetime.strptime(args.endDate, "%d/%m/%Y") - datetime.strptime(args.startDate, "%d/%m/%Y")).days > MAX_DAYS:
-	print("Can't fetch more than " + str(MAX_DAYS) + " days")
-	exit()
+	## Display the dates
+	print("Start date: " + args.startDate)
+	print("End date: " + args.endDate)
+	print("We'll try to fetch " + str((datetime.strptime(args.endDate, "%d/%m/%Y") - datetime.strptime(args.startDate, "%d/%m/%Y")).days) + " days")
 
-url = "https://aurion-lille.isen.fr/faces/Planning.xhtml"
-eventsData = []
-eventsTeacher = []
-eventsLocation = []
+	if (datetime.strptime(args.endDate, "%d/%m/%Y") - datetime.strptime(args.startDate, "%d/%m/%Y")).days > MAX_DAYS:
+		print("Can't fetch more than " + str(MAX_DAYS) + " days")
+		exit()
 
-## Set the locale depending on the system
-## (Windows is using a different locale string)
-## We set it in French because the months and weekdays are in French
-if sys.platform in ['win32']:
-	locale.setlocale(locale.LC_ALL, 'fra')
-	print("Locale set on French for Windows platform")
-else:
-	locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
-	print("Locale set on French for Unix platform")
+	url = "https://aurion-lille.isen.fr/faces/Planning.xhtml"
+	eventsData = []
+	eventsTeacher = []
+	eventsLocation = []
+	eventsSubject = []
 
-## Open a session and start retrieving data
-with requests.Session() as s:
-	r = s.get(url)
+	## Set the locale depending on the system
+	## (Windows is using a different locale string)
+	## We set it in French because the months and weekdays are in French
+	if sys.platform in ['win32']:
+		locale.setlocale(locale.LC_ALL, 'fra')
+		print("Locale set on French for Windows platform")
+	else:
+		locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
+		print("Locale set on French for Unix platform")
 
-	if args.verbose:
-		print("Response URL: " + r.url)
-		print("Cookies: " + str(s.cookies))
+	## Open a session and start retrieving data
+	with requests.Session() as s:
+		r = s.get(url)
+		if checkForError(r):
+			quit()
 
-	parser = BeautifulSoup(r.text.encode(encoding='UTF-8',errors='strict'), 'html.parser')
-	payload = {"form": "form",
-			   "form:largeurDivCenter": "1142"}
+		if args.verbose:
+			print("Response URL: " + r.url)
+			print("Cookies: " + str(s.cookies))
 
-	## The website use Richfaces forms for navigation,
-	## We first need to find the j_idt code for the button we want to press
-	for DOMInput in parser.find_all("span", "rf-ddm-itm-lbl"):
-		if args.studentGroup in DOMInput.get_text():
-			payload[DOMInput.parent["id"]] = DOMInput.parent["id"]
-	## Then we need something called "javax.faces.ViewState", whatever it is
-	payload["javax.faces.ViewState"] = parser.select_one("#j_id1:javax.faces.ViewState:0")["value"]
+		parser = BeautifulSoup(r.text.encode(encoding='UTF-8',errors='strict'), 'html.parser')
+		payload = {"form": "form",
+				   "form:largeurDivCenter": "1142"}
 
-	if args.verbose:
-		print("Payload: " + str(payload))
+		## The website use Richfaces forms for navigation,
+		## We first need to find the j_idt code for the button we want to press
+		for DOMInput in parser.find_all("span", "rf-ddm-itm-lbl"):
+			if args.studentGroup in DOMInput.get_text():
+				payload[DOMInput.parent["id"]] = DOMInput.parent["id"]
+		## Then we need something called "javax.faces.ViewState", whatever it is
+		payload["javax.faces.ViewState"] = parser.select_one("#j_id1:javax.faces.ViewState:0")["value"]
 
-	r = s.post(url, params = payload)
-	## By now, we should have received https://aurion-lille.isen.fr/faces/ChoixPlanning.xhtml
+		if args.verbose:
+			print("Payload: " + str(payload))
 
-	if args.verbose:
-		print("Response URL: " + r.url)
-		print("Cookies: " + str(s.cookies))
+		r = s.post(url, params = payload)
+		if checkForError(r):
+			quit()
+		## By now, we should have received https://aurion-lille.isen.fr/faces/ChoixPlanning.xhtml
 
-	parser = BeautifulSoup(r.text.encode(encoding='UTF-8',errors='strict'), 'html.parser')
-	payload = {"form": "form",
-			   "form:largeurDivCenter": "1154",
-			   "form:j_idt263-value": "false",
-			   "form:calendarDebutInputDate": args.startDate,
-			   "form:calendarDebutInputCurrentDate": "/".join(args.startDate.split("/")[1:]),
-			   "form:calendarFinInputDate": args.endDate,
-			   "form:calendarFinInputCurrentDate": "/".join(args.endDate.split("/")[1:]),
-			   "form:dataTableFavori:j_idt150": "on",
-			   "form:dataTableFavori:0:j_idt151": "on",
-			   "javax.faces.source": "form:j_idt110",
-			   "javax.faces.partial.event": "click",
-			   "javax.faces.partial.execute": "form:j_idt110 @component",
-			   "javax.faces.partial.render": "@component",
-			   "org.richfaces.ajax.component": "form:j_idt110",
-			   "form:j_idt110": "form:j_idt110",
-			   "rfExt": "null",
-			   "AJAX:EVENTS_COUNT": "1",
-			   "javax.faces.partial.ajax": "true"}
-	payload["javax.faces.ViewState"] = parser.select_one("#j_id1:javax.faces.ViewState:0")["value"]
+		if args.verbose:
+			print("Response URL: " + r.url)
+			print("Cookies: " + str(s.cookies))
 
-	if args.verbose:
-		print("Payload: " + str(payload))
+		parser = BeautifulSoup(r.text.encode(encoding='UTF-8',errors='strict'), 'html.parser')
+		payload = {"form": "form",
+				   "form:largeurDivCenter": "1154",
+				   "form:j_idt173-value": "false",
+				   "form:calendarDebutInputDate": args.startDate,
+				   "form:calendarDebutInputCurrentDate": "/".join(args.startDate.split("/")[1:]),
+				   "form:calendarFinInputDate": args.endDate,
+				   "form:calendarFinInputCurrentDate": "/".join(args.endDate.split("/")[1:]),
+				   "form:dataTableFavori:j_idt263": "on",
+				   "form:dataTableFavori:0:j_idt264": "on",
+				   "javax.faces.source": "form:j_idt223",
+				   "javax.faces.partial.event": "click",
+				   "javax.faces.partial.execute": "form:j_idt223 @component",
+				   "javax.faces.partial.render": "@component",
+				   "org.richfaces.ajax.component": "form:j_idt223",
+				   "form:j_idt223": "form:j_idt223",
+				   "rfExt": "null",
+				   "AJAX:EVENTS_COUNT": "1",
+				   "javax.faces.partial.ajax": "true"}
+		payload["javax.faces.ViewState"] = parser.select_one("#j_id1:javax.faces.ViewState:0")["value"]
 
-	r = s.post(r.url, params = payload)
+		if args.verbose:
+			print("Payload: " + str(payload))
 
-	## Now for some parsing of the page
-	parser = BeautifulSoup(r.text.encode(encoding='UTF-8',errors='strict'), 'html.parser')
+		r = s.post(r.url, params = payload)
+		if checkForError(r):
+			quit()
 
-	## We build the list of events by finding all labels like "Du", "Au" and
-	## "Matière" and getting the next sibling label which hold the information
-	## we want (starting time, ending time and subject)
-	for DOMInput in parser.find_all("span", "ev_libelle"):
-		## The sibling of "Du" holds the starting time
-		if DOMInput.get_text() == "Du":
-			classDate = DOMInput.parent.parent.parent.contents[3].get_text()
-			classStartHour = DOMInput.parent.parent.parent.contents[7].get_text()
-		## The sibling of "Au" holds the ending time
-		if DOMInput.get_text() == "Au":
-			classEndHour = DOMInput.parent.parent.parent.contents[7].get_text()
+		if args.verbose:
+			print("Response URL: " + r.url)
+			print("Cookies: " + str(s.cookies))
 
-		## The sibling of "Matière" holds the class's subject
-		if DOMInput.get_text() == "Matière":
-			classTitle = DOMInput.parent.parent.parent.contents[3].get_text()
+		## Now for some parsing of the page
+		parser = BeautifulSoup(r.text.encode(encoding='UTF-8',errors='strict'), 'html.parser')
 
-		if DOMInput.get_text() == "Type d'enseignement":
-			classType = DOMInput.parent.parent.parent.contents[3].get_text()
-			if classType == "Travaux Dirigés":
-				classType = "TD"
-			elif classType == "Travaux Pratiques":
-				classType = "TP"
-			eventsData.append({"startingTime": datetime.strptime(classDate + " " + classStartHour, "%A %d %B %Y %H:%M"),
-							   "stoppingTime": datetime.strptime(classDate + " " + classEndHour, "%A %d %B %Y %H:%M"),
-							   "title": ', '.join([classType, classTitle]),
-							   "type": classType})
+		## We build the list of events by finding all labels like "Du", "Au" and
+		## "Matière" and getting the next sibling label which hold the
+		## information we want (starting time, ending time and subject)
+		for DOMInput in parser.find_all("span", "ev_libelle"):
+			## The sibling of "Du" holds the starting time
+			if DOMInput.get_text() == "Du":
+				classDate = DOMInput.parent.parent.parent.contents[3].get_text()
+				classStartHour = DOMInput.parent.parent.parent.contents[7].get_text()
+			## The sibling of "Au" holds the ending time
+			if DOMInput.get_text() == "Au":
+				classEndHour = DOMInput.parent.parent.parent.contents[7].get_text()
 
-	## We build the list of teachers. If nothing goes wrong, it should be
-	## built in the same order than the events, thus having each element in the
-	## events list correspond to an element in the teachers list with the same
-	## index
-	for DOMInput in parser.find_all("tbody", id = re.compile(".*j_idt212:tb")):
-		teachersList = []
-		for content in DOMInput.contents:
-			if content.contents[0].get_text() == "":
-				teachersList = None
-			else:
-				teachersList.append(content.contents[1].get_text() + " " + content.contents[0].get_text())
-		eventsTeacher.append({"teachers": teachersList})
+			## The sibling of "Matière" holds the class's subject
+			if DOMInput.get_text() == "Matière":
+				classTitle = DOMInput.parent.parent.parent.contents[3].get_text()
 
-	## We build the list of locations. If nothing goes wrong, it should be
-	## built in the same order than the events, thus having each element in the
-	## events list correspond to an element in the locations list with the same
-	## index
-	for DOMInput in parser.find_all("td", id = re.compile(".*0:j_idt205")):
-		eventsLocation.append({"location": DOMInput.get_text()})
+			if DOMInput.get_text() == "Type d'enseignement":
+				classType = DOMInput.parent.parent.parent.contents[3].get_text()
+				if classType == "Travaux Dirigés":
+					classType = "TD"
+				elif classType == "Travaux Pratiques":
+					classType = "TP"
+				eventsData.append({"startingTime": datetime.strptime(classDate + " " + classStartHour, "%A %d %B %Y %H:%M"),
+								   "stoppingTime": datetime.strptime(classDate + " " + classEndHour, "%A %d %B %Y %H:%M"),
+								   "title": ', '.join([classType, classTitle]),
+								   "type": classType})
 
-	#icalString = ""
-	if not args.multiple:
-		## Start creating the icalendar-compatible file
-		icalString = "BEGIN:VCALENDAR\r\n"
+		## We build the list of teachers. If nothing goes wrong, it should be
+		## built in the same order than the events, thus having each element in
+		## the events list correspond to an element in the teachers list with
+		## the same index
+		for DOMInput in parser.find_all("tbody", id = re.compile(".*j_idt213:tb")):
+			teachersList = []
+			for content in DOMInput.contents:
+				## If it's empty, we set the teacher to None
+				if content.contents[0].get_text() == "":
+					teachersList = None
+				else:
+					teachersList.append(content.contents[1].get_text() + " " + content.contents[0].get_text())
+			eventsTeacher.append({"teachers": teachersList})
 
-	## Create all the events in the VEVENT format
-	for i in range(0, len(eventsData)):
-		if args.multiple:
+		## We build the list of subjects. If nothing goes wrong, it should be
+		## built in the same order than the events, thus having each element in
+		## the events list correspond to an element in the subjects list with
+		## the same index
+		for DOMInput in parser.find_all("tbody", id= re.compile(".*j_idt252:tb")):
+			for content in DOMInput.contents:
+				## If it's empty, we set the subject to None
+				if content.contents[0].get_text() == "":
+					eventsSubject.append({"subjects": None})
+				else:
+					eventsSubject.append({"subjects": ''.join(content.contents[0].get_text().split('-')[:-1])})
+
+		## We build the list of locations. If nothing goes wrong, it should be
+		## built in the same order than the events, thus having each element in
+		## the events list correspond to an element in the locations list with
+		## the same index
+		for DOMInput in parser.find_all("td", id = re.compile(".*0:j_idt206")):
+			eventsLocation.append({"location": DOMInput.get_text()})
+
+		#icalString = ""
+		if not args.multiple:
+			## Start creating the icalendar-compatible file
 			icalString = "BEGIN:VCALENDAR\r\n"
 
-		icalString += "BEGIN:VEVENT\r\n"
-		icalString += "UID:" + str(i) + "\r\n"
-		icalString += "DTSTART:" + datetime.strftime(eventsData[i]["startingTime"], "%Y%m%dT%H%M%S") + "\r\n"
-		icalString += "DTEND:" + datetime.strftime(eventsData[i]["stoppingTime"], "%Y%m%dT%H%M%S") + "\r\n"
-		icalString += "SUMMARY:" + eventsData[i]["title"].replace(",", " -") + "\r\n"
-		icalString += "CATEGORIES:" + eventsData[i]["type"] + "\r\n"
-		if eventsTeacher[i]["teachers"] != None:
-			for teacher in eventsTeacher[i]["teachers"]:
-				icalString += "ATTENDEE:" + teacher + "\r\n"
-			icalString += "DESCRIPTION:" + eventsData[i]["type"] + " - " + '/'.join(eventsTeacher[i]["teachers"]) + "\r\n"
+		## Create all the events in the VEVENT format
+		for i in range(0, len(eventsData)):
+			if args.multiple:
+				icalString = "BEGIN:VCALENDAR\r\n"
 
-		icalString += "LOCATION:" + eventsLocation[i]["location"] + "\r\n"
-		icalString += "END:VEVENT\r\n"
+			icalString += "BEGIN:VEVENT\r\n"
+			icalString += "UID:" + str(i) + "\r\n"
+			icalString += "DTSTART:" + datetime.strftime(eventsData[i]["startingTime"], "%Y%m%dT%H%M%S") + "\r\n"
+			icalString += "DTEND:" + datetime.strftime(eventsData[i]["stoppingTime"], "%Y%m%dT%H%M%S") + "\r\n"
+			#icalString += "SUMMARY:" + eventsData[i]["title"].replace(",", " -") + "\r\n"
+			icalString += "SUMMARY:" + (eventsSubject[i]["subjects"].replace(",", " -") if eventsSubject[i]["subjects"] is not None else eventsData[i]["title"].replace(",", " -")) + "\r\n"
+			icalString += "CATEGORIES:" + eventsData[i]["type"] + "\r\n"
+			if eventsTeacher[i]["teachers"] is not None:
+				for teacher in eventsTeacher[i]["teachers"]:
+					icalString += "ATTENDEE:" + teacher + "\r\n"
+				icalString += "DESCRIPTION:" + eventsData[i]["type"] + " - " + '/'.join(eventsTeacher[i]["teachers"]) + "\r\n"
 
-		if args.multiple:
+			icalString += "LOCATION:" + eventsLocation[i]["location"] + "\r\n"
+			icalString += "END:VEVENT\r\n"
+
+			if args.multiple:
+				icalString += "END:VCALENDAR\r\n"
+
+				## Write to the output file
+				with open(args.outputFile + str(i) + ".ics", "w") as f:
+					f.write(icalString)
+
+		if not args.multiple:
 			icalString += "END:VCALENDAR\r\n"
 
 			## Write to the output file
-			with open(args.outputFile + str(i) + ".ics", "w") as f:
+			with open(args.outputFile + ".ics", "w") as f:
 				f.write(icalString)
-
-	if not args.multiple:
-		icalString += "END:VCALENDAR\r\n"
-
-		## Write to the output file
-		with open(args.outputFile + ".ics", "w") as f:
-			f.write(icalString)
