@@ -235,7 +235,7 @@ if __name__ == '__main__':
 				icalString = "BEGIN:VCALENDAR\r\n"
 
 			icalString += "BEGIN:VEVENT\r\n"
-			icalString += "UID:" + str(i) + "\r\n"
+			#icalString += "UID:" + str(i) + "\r\n"
 			icalString += "DTSTART:" + datetime.strftime(eventsData[i]["startingTime"], "%Y%m%dT%H%M%S") + "\r\n"
 			icalString += "DTEND:" + datetime.strftime(eventsData[i]["stoppingTime"], "%Y%m%dT%H%M%S") + "\r\n"
 			icalString += "SUMMARY:" + (eventsSubject[i]["subjects"].replace(",", " -") if eventsSubject[i]["subjects"] is not None else eventsData[i]["title"].replace(",", " -")) + "\r\n"
