@@ -1,0 +1,9 @@
+[Unit]
+Description=Run isen-plannings every day
+
+[Timer]
+OnBootSec=15min
+OnUnitActiveSec=24hours
+
+[Install]
+WantedBy=timers.target

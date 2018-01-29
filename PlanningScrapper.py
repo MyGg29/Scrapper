@@ -10,6 +10,8 @@ import argparse
 
 MAX_DAYS = 40
 GROUPS = ["CIR1", "CIR2", "CIR3", "AP3", "AP4", "AP5", "CPG1", "CPG2", "CSI3", "CSIU3", "M1", "M2"]
+ERROR_CODE = 1
+SUCCESS_CODE = 0
 
 def checkForError(response):
 	if response.url.split("?")[0] == "https://cas.isen.fr/login":
@@ -23,12 +25,12 @@ def prettyPrintDict(dictionary):
 	firstColumnFormat = "{:{c}<" + str(firstColumnSize) + "}"
 	secondColumnSize = keysMaxLength(dictionary.values())
 	secondColumnFormat = "{:{c}<" + str(secondColumnSize) + "}"
-	print("|-" + firstColumnFormat.format("", c="-") + "-|-" + secondColumnFormat.format("", c="-") + "-|")
+	print("+-" + firstColumnFormat.format("", c="-") + "-+-" + secondColumnFormat.format("", c="-") + "-+")
 	print("| " + firstColumnFormat.format("Key", c=" ") + " | " + secondColumnFormat.format("Value", c=" ") + " |")
-	print("|-" + firstColumnFormat.format("", c="-") + "-|-" + secondColumnFormat.format("", c="-") + "-|")
+	print("+-" + firstColumnFormat.format("", c="-") + "-+-" + secondColumnFormat.format("", c="-") + "-+")
 	for key, item in dictionary.items():
 		print("| " + firstColumnFormat.format(key, c=" ") + " | " + secondColumnFormat.format(item, c=" ") + " |")
-	print("|-" + firstColumnFormat.format("", c="-") + "-|-" + secondColumnFormat.format("", c="-") + "-|")
+	print("+-" + firstColumnFormat.format("", c="-") + "-+-" + secondColumnFormat.format("", c="-") + "-+")
 
 def keysMaxLength(keys):
 	max = 0
@@ -37,7 +39,7 @@ def keysMaxLength(keys):
 			max = len(key)
 	return max
 
-if __name__ == '__main__':
+def main():
 	## Setup the argument parser and parse them
 	argsParser = argparse.ArgumentParser(description = "Scraps ISEN's planning website. Outputs an .ics file in the current directory.", prog = "python3 PlanningScrapper.py")
 	argsParser.add_argument("-g", help = "Set the group", required = True, metavar = "<group>", dest = "studentGroup")
@@ -46,20 +48,26 @@ if __name__ == '__main__':
 	argsParser.add_argument("-o", help = "Name for the outputted file, without the extension", metavar = "<filename>", required = True, dest = "outputFile")
 	argsParser.add_argument("-v", help = "Verbose mode", dest = "verbose", action = "store_true")
 	argsParser.add_argument("-m", help = "Save the events in multiple files", action = "store_true", dest = "multiple")
+	argsParser.add_argument("-S", help = "Silent - disables all messages. Overwrites the -v (verbose) argument.", action = "store_true", dest = "silent")
 	args = argsParser.parse_args()
 
+	## Check if the group exists
 	if args.studentGroup not in GROUPS:
 		print("No group like " + args.studentGroup)
-		quit()
+		return ERROR_CODE
+
+	## Disable verbose if silent is set
+	args.verbose = False if args.silent else args.verbose
 
 	## Display the dates
-	print("Start date: " + args.startDate)
-	print("End date: " + args.endDate)
-	print("We'll try to fetch " + str((datetime.strptime(args.endDate, "%d/%m/%Y") - datetime.strptime(args.startDate, "%d/%m/%Y")).days) + " days")
+	if not args.silent:
+		print("Start date: " + args.startDate)
+		print("End date: " + args.endDate)
+		print("We'll try to fetch " + str((datetime.strptime(args.endDate, "%d/%m/%Y") - datetime.strptime(args.startDate, "%d/%m/%Y")).days) + " days")
 
 	if (datetime.strptime(args.endDate, "%d/%m/%Y") - datetime.strptime(args.startDate, "%d/%m/%Y")).days > MAX_DAYS:
 		print("Can't fetch more than " + str(MAX_DAYS) + " days")
-		exit()
+		return ERROR_CODE
 
 	url = "https://aurion-lille.isen.fr/faces/Planning.xhtml"
 	eventsData = []
@@ -83,7 +91,7 @@ if __name__ == '__main__':
 	with requests.Session() as s:
 		r = s.get(url)
 		if checkForError(r):
-			quit()
+			return ERROR_CODE
 
 		if args.verbose:
 			print("Response URL: " + r.url)
@@ -107,7 +115,7 @@ if __name__ == '__main__':
 
 		r = s.post(url, params = payload)
 		if checkForError(r):
-			quit()
+			return ERROR_CODE
 		## By now, we should have received https://aurion-lille.isen.fr/faces/ChoixPlanning.xhtml
 
 		if args.verbose:
@@ -143,7 +151,7 @@ if __name__ == '__main__':
 
 		r = s.post(r.url, params = payload)
 		if checkForError(r):
-			quit()
+			return ERROR_CODE
 
 		if args.verbose:
 			print("Response URL: " + r.url)
@@ -261,3 +269,8 @@ if __name__ == '__main__':
 			## Write to the output file
 			with open(args.outputFile + ".ics", "w") as f:
 				f.write(icalString)
+
+	return SUCCESS_CODE
+
+if __name__ == '__main__':
+	main()

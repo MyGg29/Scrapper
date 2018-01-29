@@ -12,7 +12,15 @@ GROUPS = ["AP3", "AP4", "AP5", "CIR1", "CIR2", "CIR3", "CPG1", "CPG2", "CSI3", "
 # Those are blacklisted group because we don't handle them yet, see PlanningScrapper.py for more information
 BLACKLISTED_GROUPS = ["CIR1", "CIR2", "CIR3", "CPG1", "CPG2", "CSI3", "CSIU3", "M1", "M2"]
 
-if __name__ == '__main__':
+def getChunk(startDate, endDate, chunkIndex, group):
+    ret = call(["python", "PlanningScrapper.py", "-g", group, "-o", group + "/" + str(chunkIndex), "-s", datetime.strftime(startDate, "%d/%m/%Y"), "-e", datetime.strftime(endDate, "%d/%m/%Y"), "-m", "-S"])
+
+    if ret:
+        print("\x1B[31;40m" + "FAILURE" + "\x1B[0m")
+    else:
+        print("\x1B[32;40m" + "SUCCESS" + "\x1B[0m")
+
+def main():
     startDate = datetime(year=2017, month=9, day=1)
     endDate = datetime(year=2018, month=6, day=24)
 
@@ -36,13 +44,14 @@ if __name__ == '__main__':
             indexOffset = len(os.listdir("./" + group))
             chunkStartDate = startDate + timedelta(days = chunkIndex * MAX_DAYS)
             chunkEndDate = startDate + timedelta(days = (chunkIndex + 1) * MAX_DAYS)
-
-            call(["python", "PlanningScrapper.py", "-g", group, "-o", group + "/" + str(chunkIndex), "-s", datetime.strftime(chunkStartDate, "%d/%m/%Y"), "-e", datetime.strftime(chunkEndDate, "%d/%m/%Y"), "-m"])
+            getChunk(chunkStartDate, chunkEndDate, chunkIndex, group)
 
             print("Waiting a little bit before getting next chunk")
             sleep(5)
 
         lastChunkStartDate = startDate + timedelta(days = nbBigChunks * MAX_DAYS)
         lastChunkEndDate = startDate + timedelta(days = nbBigChunks * MAX_DAYS + reste)
+        getChunk(lastChunkStartDate, lastChunkEndDate, str(nbBigChunks), group)
 
-        call(["python", "PlanningScrapper.py", "-g", group, "-o", group + "/test" + str(nbBigChunks), "-s", datetime.strftime(lastChunkStartDate, "%d/%m/%Y"), "-e", datetime.strftime(lastChunkEndDate, "%d/%m/%Y"), "-m"])
+if __name__ == '__main__':
+    main()

@@ -30,9 +30,12 @@ Dependencies: python-requests python-beautifulsoup4
 
 #### PlanningScrapper.py
 
+This script allows the retrieval of maximum 40 days of planning (the maximum allowed by Aurion).
+
 ```
 usage: python3 PlanningScrapper.py [-h] -g <group> [-s <start date>]
-                                   [-e <end date>] -o <filename>
+                                   [-e <end date>] -o <filename> [-v] [-m]
+                                   [-S]
 
 Scraps ISEN's planning website. Outputs an .ics file in the current directory.
 
@@ -43,9 +46,22 @@ optional arguments:
   -e <end date>    End day
   -o <filename>    Name for the outputted file, without the extension
   -v               Verbose mode
+  -m               Save the events in multiple files
+  -S               Silent - disables all messages. Overwrites the -v (verbose)
+                   argument.
   ```
 
 Dependencies: python-requests python-beautifulsoup4
+
+#### GetAllPlannings.py
+
+A script that will be used on a CalDAV server to regularly update all plannings for all groups. It calls PlanningScrapper.py as much as it needs to retrieve a full year of planning. It is used by isen-plannings.service and isen-plannings.timer. This last one is the systemd-timer used to launch the service every day.
+
+```
+usage: python3 GetAllPlannings.py
+```
+
+Dependencies:
 
 #### RoomsExtractor.py
 
