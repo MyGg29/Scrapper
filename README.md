@@ -80,3 +80,7 @@ optional arguments:
 ```
 
 Dependencies: python-requests python-beautifulsoup4 CASsession.py
+
+### What to install and how ?
+
+The planning scrapper and all its tools and services can be installed through the makefile. Using `sudo make install` should install all the python scripts in `/usr/share/isen/planning-scrapper/` and all the services files in `/usr/lib/systemd/system/`.
