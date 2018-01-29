@@ -1,5 +1,6 @@
 import requests
-from bs4 import BeautifulSoup        
+from bs4 import BeautifulSoup
+
 
 class CASSession:
 
@@ -11,21 +12,24 @@ class CASSession:
         print("Initiating CASSession object")
 
     def getSession(self):
-        if self.password == None or self.username == None:
+        if self.password is None or self.username is None:
             raise Exception("Missing password or username !")
         reqSession = requests.Session()
         response = reqSession.get(self.url)
 
-        parser = BeautifulSoup(response.text.encode(encoding='UTF-8',errors='strict'), 'html.parser')
+        parser = BeautifulSoup(
+            response.text.encode(encoding='UTF-8', errors='strict'),
+            'html.parser'
+        )
         payload = {}
 
-        for DOMInput in parser.findAll(name = "input"):
+        for DOMInput in parser.findAll(name="input"):
             if DOMInput['name'] == 'lt':
                 payload['lt'] = DOMInput['value']
 
         payload['username'] = self.username
         payload['password'] = self.password
-        response = reqSession.post(response.url, params = payload)
+        response = reqSession.post(response.url, params=payload)
         return reqSession
 
     def setUsername(self, newUsername):

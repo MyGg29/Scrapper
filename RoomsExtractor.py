@@ -42,8 +42,8 @@ with session as s:
             button = DOMInput["onclick"][sidebarIndex:sidebarIndex + 21]
 
     payload = {"form": "form",
-        "form:largeurDivCenter": "1142",
-        button: button}
+               "form:largeurDivCenter": "1142",
+               button: button}
 
     payload["javax.faces.ViewState"] = parser.select_one("#j_id1:javax.faces.ViewState:0")["value"]
     print("Payload: " + str(payload))
