@@ -1,7 +1,7 @@
 install:
 	@echo "Installing scripts"
-	install -D -m 744 GetAllPlannings.py $(DESTDIR)/usr/share/isen/planning-scrapper/
-	install -D -m 744 PlanningScrapper.py $(DESTDIR)/usr/share/isen/planning-scrapper/
+	install -D -m 744 GetAllPlannings.py $(DESTDIR)/usr/share/isen/planning-scrapper/GetAllPlannings.py
+	install -D -m 744 PlanningScrapper.py $(DESTDIR)/usr/share/isen/planning-scrapper/PlanningScrapper.py
 
 	@echo "Installing systemd files"
 	install -D -m 644 isen-plannings.service $(DESTDIR)/usr/lib/systemd/system/isen-plannings.service
