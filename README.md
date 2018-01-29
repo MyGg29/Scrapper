@@ -61,7 +61,7 @@ A script that will be used on a CalDAV server to regularly update all plannings 
 usage: python3 GetAllPlannings.py
 ```
 
-Dependencies:
+Dependencies: PlanningScrapper.py and all its dependencies
 
 #### RoomsExtractor.py
 
