@@ -100,7 +100,7 @@ class PlanningScrapper(object):
             self.session = CASSession()
             self.session.setUsername(self.user)
             self.session.setPassword(self.password)
-            self.session.getSession()
+            self.session = self.session.getSession()
         else:
             self.session = requests.Session()
 
@@ -213,8 +213,55 @@ class PlanningScrapper(object):
 
         return r
 
-    def loadPrivatePlanning(self):
-        pass
+    def loadPrivatePlanning(self, homePage):
+        r = self.session.get(homePage.url)
+        if self.verbose:
+            print("Response URL: " + r.url)
+            print("Cookies: " + str(self.session.cookies))
+
+        # Connect with the prepared session
+        parser = BeautifulSoup(
+            r.text.encode(encoding='UTF-8', errors='strict'),
+            'html.parser'
+        )
+
+        self.payload = {"form": "form",
+                        "form:largeurDivCenter": "1142",
+                        "form:headerSubview:j_idt23":
+                        "form:headerSubview:j_idt23"}
+
+        self.payload["javax.faces.ViewState"] = parser.select_one(
+            "#j_id1:javax.faces.ViewState:0"
+        )["value"]
+
+        if self.verbose:
+            print("Payload: ")
+            prettyPrintDict(self.payload)
+
+        r = self.session.post(r.url, params=self.payload)
+
+        # Now that we're logged in, we'll load the room page
+        parser = BeautifulSoup(
+            r.text.encode(encoding='UTF-8', errors='strict'),
+            'html.parser'
+        )
+
+        self.payload = {"form": "form",
+                        "form:largeurDivCenter": "1142",
+                        "form:Sidebar:j_idt217": "form:Sidebar:j_idt217"}
+
+        self.payload["javax.faces.ViewState"] = parser.select_one(
+            "#j_id1:javax.faces.ViewState:0"
+        )["value"]
+
+        if self.verbose:
+            print("Payload: ")
+            prettyPrintDict(self.payload)
+
+        url = "https://aurion-lille.isen.fr/faces/MainMenuPage.xhtml"
+        r = self.session.post(url, params=self.payload)
+
+        return r
 
     def getEvents(self, parser):
         eventsData = []
