@@ -1,3 +1,6 @@
 *.ics
 *.csv
+*.timer
+*.service
 __pycache__/*
+build/*

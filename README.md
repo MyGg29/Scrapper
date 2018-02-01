@@ -1,4 +1,7 @@
 # Scrapper
+
+**THIS README IS CURRENTLY OUTDATED, A NEW ONE IS COMING SOON**
+
 ## Scraps ISEN's Aurion system
 
 Pythons scripts to get the most out of ISEN's Aurion system.
