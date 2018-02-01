@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # TODO: handle multiple locations
+# TODO: Add checks in the loadPrivatePlanning function
 
 import requests
 import re
@@ -44,6 +45,11 @@ class PlanningScrapper(object):
         self.session = None
         self.payload = None
 
+        self.eventsData = []
+        self.eventsTeacher = []
+        self.eventsLocation = []
+        self.eventsSubject = []
+
         # Set the locale depending on the system
         # (Windows is using a different locale string)
         # We set it in French because the months and weekdays are in French
@@ -56,34 +62,9 @@ class PlanningScrapper(object):
             if self.verbose:
                 print("Locale set on French for Unix platform")
 
-        self.startSession()
-        page = self.loadHomePage()
-        if page == ERROR_CODE:
-            print("ERROR")
-            return ERROR_CODE
-        if login:
-            page = self.loadPrivatePlanning(page)
-        else:
-            page = self.loadPublicPlanning(page)
-        self.session.close()
-
-        if page == ERROR_CODE:
-            print("ERROR")
-            return ERROR_CODE
-
-        parser = BeautifulSoup(
-            page.text.encode(encoding='UTF-8', errors='strict'), 'html.parser'
-        )
-
-        eventsData = self.getEvents(parser)
-        eventsTeacher = self.getTeachers(parser)
-        eventsLocation = self.getLocations(parser)
-        eventsSubject = self.getSubjects(parser)
-
-        self.saveFiles(eventsData, eventsTeacher, eventsLocation,
-                       eventsSubject, self.output)
-
-        self.result = SUCCESS_CODE
+        self.groupExists(self.group, False)
+        self.loginIsSet(False)
+        self.checkNbDays(False)
 
     def checkForErrors(self, response, expectedResponse=None):
         ret = False
@@ -95,19 +76,109 @@ class PlanningScrapper(object):
             ret = True
         return ret
 
+    def groupExists(self, group, critical=True):
+        # Check if the group exists
+        if group not in GROUPS:
+            if critical:
+                print("ERROR: No group like " + group)
+            elif not critical and self.verbose:
+                print("WARNING: No group like " + group)
+            return False
+        return True
+
+    def loginIsSet(self, critical=True):
+        # Checks for the login if login is enabled
+        if self.login:
+            if self.password is None or self.login is None:
+                if critical:
+                    print("ERROR: No user or password given for the user")
+                elif not critical and self.verbose:
+                    print("WARNING: No user or password given for the user")
+                return False
+        return True
+
+    def checkNbDays(self, critical=True):
+        nbDays = (datetime.strptime(self.endDate, "%d/%m/%Y") -
+                  datetime.strptime(self.startDate, "%d/%m/%Y")).days
+
+        # Display the dates
+        if not self.silent:
+            print("Start date: " + self.startDate)
+            print("End date: " + self.endDate)
+            print("We'll try to fetch " + str(nbDays) + " days")
+
+        if nbDays > MAX_DAYS:
+            if critical:
+                print("ERROR: Can't fetch more than " +
+                      str(MAX_DAYS) + " days")
+            elif not critical and self.verbose:
+                print("WARNING: Can't fetch more than " +
+                      str(MAX_DAYS) + " days")
+            return False
+        return True
+
     def startSession(self):
         if self.login:
+            if not self.loginIsSet(True):
+                return False
             self.session = CASSession()
             self.session.setUsername(self.user)
             self.session.setPassword(self.password)
             self.session = self.session.getSession()
         else:
             self.session = requests.Session()
+        return True
+
+    def stopSession(self):
+        self.session.close()
+
+    def retrieveData(self):
+        if not self.groupExists(self.group):
+            return False
+
+        page = self.loadHomePage()
+        if not page:
+            print("ERROR: Couldn't get the home page")
+            return False
+        if self.login:
+            page = self.loadPrivatePlanning(page)
+        else:
+            page = self.loadPublicPlanning(page)
+
+        if not page:
+            print("ERROR: Couldn't get the planning")
+            return False
+
+        parser = BeautifulSoup(
+            page.text.encode(encoding='UTF-8', errors='strict'), 'html.parser'
+        )
+
+        self.eventsData = self.getEvents(parser)
+        self.eventsTeacher = self.getTeachers(parser)
+        self.eventsLocation = self.getLocations(parser)
+        self.eventsSubject = self.getSubjects(parser)
+
+        if self.verbose:
+            print("We have :")
+            print("- " + str(len(self.eventsData)) + " events")
+            print("- " + str(len(self.eventsTeacher)) + " teachers")
+            print("- " + str(len(self.eventsLocation)) + " locations")
+            print("- " + str(len(self.eventsSubject)) + " subjects")
+        if ((len(self.eventsData) == len(self.eventsTeacher) and
+             len(self.eventsTeacher) == len(self.eventsLocation))):
+            print("All clear!")
+
+        if ((len(self.eventsData) != len(self.eventsTeacher) or
+             len(self.eventsTeacher) != len(self.eventsLocation))):
+            print("We have incomplete data. Skipping.")
+            return False
+
+        return True
 
     def loadHomePage(self):
         r = self.session.get(URL)
         if self.checkForErrors(r):
-            return ERROR_CODE
+            return False
 
         if self.verbose:
             print("Response URL: " + r.url)
@@ -147,7 +218,7 @@ class PlanningScrapper(object):
         r = self.session.post(homePage.url, params=self.payload)
         if self.checkForErrors(r, "https://aurion-lille.isen.fr/" +
                                "faces/ChoixPlanning.xhtml"):
-            return ERROR_CODE
+            return False
 
         if self.verbose:
             print("Response URL: " + r.url)
@@ -205,7 +276,7 @@ class PlanningScrapper(object):
         # https://aurion-lille.isen.fr/faces/Planning.xhtml
         # with the data ready to be parsed (mmmh fresh data)
         if self.checkForErrors(r):
-            return ERROR_CODE
+            return False
 
         if self.verbose:
             print("Response URL: " + r.url)
@@ -361,55 +432,42 @@ class PlanningScrapper(object):
 
         return eventsSubject
 
-    def saveFiles(self, eventsData, eventsTeacher, eventsLocation,
-                  eventsSubject, filename):
-        if self.verbose:
-            print("We have :")
-            print("- " + str(len(eventsData)) + " events")
-            print("- " + str(len(eventsTeacher)) + " teachers")
-            print("- " + str(len(eventsLocation)) + " locations")
-            if ((len(eventsData) == len(eventsTeacher) and
-                 len(eventsTeacher) == len(eventsLocation))):
-                print("All clear!")
-
-        if ((len(eventsData) != len(eventsTeacher) or
-             len(eventsTeacher) != len(eventsLocation))):
-            print("We have incomplete data. Skipping.")
-            return ERROR_CODE
+    def saveFiles(self):
 
         if not self.multiple:
             # Start creating the icalendar-compatible file
             icalString = "BEGIN:VCALENDAR\r\n"
 
         # Create all the events in the VEVENT format
-        for i in range(0, len(eventsData)):
+        for i in range(0, len(self.eventsData)):
+            startingTime = self.eventsData[i]["startingTime"]
+            stoppingTime = self.eventsData[i]["stoppingTime"]
+            subject = (self.eventsSubject[i]["subjects"]
+                       if self.eventsSubject[i]["subjects"] is not None
+                       else self.eventsData[i]["title"])
+            classType = self.eventsData[i]["type"]
+            teachers = self.eventsTeacher[i]["teachers"]
+            location = self.eventsLocation[i]["location"]
+
             if self.multiple:
                 icalString = "BEGIN:VCALENDAR\r\n"
 
             icalString += "BEGIN:VEVENT\r\n"
             icalString += ("DTSTART:" +
-                           datetime.strftime(eventsData[i]["startingTime"],
+                           datetime.strftime(startingTime,
                                              "%Y%m%dT%H%M%S") + "\r\n")
             icalString += ("DTEND:" +
-                           datetime.strftime(eventsData[i]["stoppingTime"],
+                           datetime.strftime(stoppingTime,
                                              "%Y%m%dT%H%M%S") + "\r\n")
-            if eventsSubject[i]["subjects"] is not None:
-                icalString += ("SUMMARY:" +
-                               eventsSubject[i]["subjects"] +
-                               "\r\n")
-            else:
-                icalString += ("SUMMARY:" +
-                               eventsData[i]["title"] +
-                               "\r\n")
-            icalString += "CATEGORIES:" + eventsData[i]["type"] + "\r\n"
-            if eventsTeacher[i]["teachers"] is not None:
-                for teacher in eventsTeacher[i]["teachers"]:
+            icalString += "SUMMARY:" + subject + "\r\n"
+            icalString += "CATEGORIES:" + classType + "\r\n"
+            if teachers is not None:
+                for teacher in teachers:
                     icalString += "ATTENDEE:" + teacher + "\r\n"
-                icalString += ("DESCRIPTION:" + eventsData[i]["type"] + " - " +
-                               '/'.join(eventsTeacher[i]["teachers"]) + "\r\n")
-            if eventsLocation[i]["location"] is not None:
-                icalString += ("LOCATION:" +
-                               eventsLocation[i]["location"] + "\r\n")
+                icalString += ("DESCRIPTION:" + classType + " - " +
+                               '/'.join(teachers) + "\r\n")
+            if location is not None:
+                icalString += ("LOCATION:" + location + "\r\n")
             icalString += "END:VEVENT\r\n"
 
             if self.multiple:
@@ -476,34 +534,10 @@ def main():
                             dest="password", metavar="<password>")
     args = argsParser.parse_args()
 
-    # Check if the group exists
-    if args.studentGroup not in GROUPS:
-        print("No group like " + args.studentGroup)
-        return ERROR_CODE
-
     # Disable verbose if silent is set
     args.verbose = False if args.silent else args.verbose
 
-    # Checks for the login
-    if args.login:
-        if args.password is None or args.login is None:
-            print("No user or password given for the user")
-            return ERROR_CODE
-
-    nbDays = (datetime.strptime(args.endDate, "%d/%m/%Y") -
-              datetime.strptime(args.startDate, "%d/%m/%Y")).days
-
-    # Display the dates
-    if not args.silent:
-        print("Start date: " + args.startDate)
-        print("End date: " + args.endDate)
-        print("We'll try to fetch " + str(nbDays) + " days")
-
-    if nbDays > MAX_DAYS:
-        print("Can't fetch more than " + str(MAX_DAYS) + " days")
-        return ERROR_CODE
-
-    PlanningScrapper(
+    planning = PlanningScrapper(
         group=args.studentGroup,
         startDate=args.startDate,
         endDate=args.endDate,
@@ -514,6 +548,14 @@ def main():
         verbose=args.verbose,
         silent=args.silent,
         login=args.login)
+
+    if not planning.startSession():
+        print("ERROR: Couldn't set session")
+        return ERROR_CODE
+    if not planning.retrieveData():
+        print("ERROR: Couldn't retrieve data")
+    planning.saveFiles()
+    planning.stopSession()
 
 
 if __name__ == '__main__':

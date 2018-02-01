@@ -17,19 +17,27 @@ BLACKLISTED_GROUPS = ["CIR1", "CIR2", "CIR3", "CPG1", "CPG2", "CSI3", "CSIU3",
 
 
 def getChunk(startDate, endDate, chunkIndex, group):
-    ret = ps.PlanningScrapper(
+    planning = ps.PlanningScrapper(
         group=group,
         output=group + "/" + str(chunkIndex),
         startDate=datetime.strftime(startDate, "%d/%m/%Y"),
         endDate=datetime.strftime(endDate, "%d/%m/%Y"),
         multiple=True,
         silent=True,
-    ).result
+    )
 
-    if ret:
+    if not planning.startSession():
         print("\x1B[31;40m" + "FAILURE" + "\x1B[0m")
-    else:
-        print("\x1B[32;40m" + "SUCCESS" + "\x1B[0m")
+        return False
+
+    if not planning.retrieveData():
+        print("\x1B[31;40m" + "FAILURE" + "\x1B[0m")
+        return False
+
+    planning.saveFiles()
+    planning.stopSession()
+    print("\x1B[32;40m" + "SUCCESS" + "\x1B[0m")
+    return True
 
 
 def main():
