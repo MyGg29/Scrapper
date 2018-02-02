@@ -43,7 +43,7 @@ planning.saveFiles()
 planning.stopSession()
 ```
 
-This snippet should get you a `output.ics` file in your local directory, containing the planning for the AP3 from 01/01/2018 to 31/01/2018.
+This snippet should get you a `output.ics` file in your local directory, containing the planning for the AP3 from 01/01/2017 to 31/01/2018.
 
 ## Scripts included:
 
@@ -100,6 +100,6 @@ optional arguments:
   -o <filename>  Name for the outputted file, without the extension
 ```
 
-### What to install and how ?
+## Installation
 
-The planning scrapper and all its tools and services can be installed through the makefile. Using `sudo make install` should install all the python scripts in `/usr/share/isen/planning-scrapper/` and all the services files in `/usr/lib/systemd/system/`.
+Start by cloning this repository using `git clone https://github.com/MyGg29/Scrapper.git`. You can then go in the newly created folder and launch `setup.py install` from here. If you don't have the rights to install it, launch it with `sudo` or add it to your local user by adding the parameter `--user` to the install command. If you do choose to install it for your user, you'll need to add `~/.local/bin` to your PATH to be able to launch the scripts. However, using the modules in your own script should work out of the box.
