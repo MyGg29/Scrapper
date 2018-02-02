@@ -17,6 +17,7 @@ setup(
     scripts=["bin/GetPlanning.py",
              "bin/GetAllPlannings.py",
              "bin/RoomsExtractor.py"],
+    data_files=[('/etc', ['etc/isen-planning.conf'])],
     # La liste ici : https://pypi.python.org/pypi?:action=list_classifiers
     classifiers=[
         "Programming Language :: Python :: 3",

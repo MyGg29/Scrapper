@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import argparse
+import configparser
 from datetime import datetime, timedelta
 from time import sleep
 import os
@@ -16,14 +18,18 @@ BLACKLISTED_GROUPS = ["CIR1", "CIR2", "CIR3", "CPG1", "CPG2", "CSI3", "CSIU3",
                       "M1", "M2"]
 
 
-def getChunk(startDate, endDate, chunkIndex, group):
+def getChunk(startDate, endDate, chunkIndex, group, args):
     planning = PlanningScrapper(
         group=group,
         output=group + "/" + str(chunkIndex),
         startDate=datetime.strftime(startDate, "%d/%m/%Y"),
         endDate=datetime.strftime(endDate, "%d/%m/%Y"),
-        multiple=True,
-        silent=True,
+        user=args.user,
+        password=args.password,
+        multiple=args.multiple,
+        verbose=args.verbose,
+        silent=args.silent,
+        login=args.login
     )
 
     if not planning.startSession():
@@ -41,6 +47,49 @@ def getChunk(startDate, endDate, chunkIndex, group):
 
 
 def main():
+    # Setup the argument parser and parse them
+    argsParser = argparse.ArgumentParser(description="""Gets all ISEN's
+     plannings and save them in a folder in ical format.""",
+                                         prog="GetAllPlanning.py")
+    argsParser.add_argument("-c", help="Configuration file", dest="conf",
+                            metavar="<conf_file>",
+                            default="/etc/isen-planning.conf")
+    argsParser.add_argument("-v", help="Verbose mode", dest="verbose",
+                            action="store_true")
+    argsParser.add_argument("-m", help="Save the events in multiple files",
+                            action="store_true", dest="multiple")
+    argsParser.add_argument("-S", help="Silent - disables all messages. \
+    Overwrites the -v (verbose) argument.", action="store_true", dest="silent")
+    argsParser.add_argument("-l", help="Enable login", action="store_true",
+                            dest="login")
+    argsParser.add_argument("-u", help="User for the login", dest="user",
+                            metavar="<user>")
+    argsParser.add_argument("-p", help="Password for the login",
+                            dest="password", metavar="<password>")
+    argsParser.add_argument("-P", help="""The path where to save the files that
+     have been retrieved""", metavar="<files_path>", dest="savePath")
+    argsParser.add_argument("-L", help="""The path where to save the
+     log file""", metavar="<log_path", dest="logPath")
+    args = argsParser.parse_args()
+
+    config = configparser.ConfigParser()
+    config.read(args.conf)
+    args.multiple = (config['general']['multipleFiles']
+                     if args.multiple is None else args.multiple)
+    args.verbose = (config['general']['verbose']
+                    if args.verbose is None else args.verbose)
+    args.silent = (config['general']['silent']
+                   if args.silent is None else args.silent)
+    args.savePath = (config['paths']['savePath']
+                     if args.savePath is None else args.savePath)
+    args.logPath = (config['paths']['logPath']
+                    if args.logPath is None else args.logPath)
+    args.login = (config['user']['loginEnabled']
+                  if args.login is None else args.login)
+    args.user = config['user']['user'] if args.user is None else args.user
+    args.password = (config['user']['password']
+                     if args.password is None else args.password)
+
     startDate = datetime(year=2017, month=9, day=1)
     endDate = datetime(year=2018, month=6, day=24)
 
@@ -64,14 +113,15 @@ def main():
         for chunkIndex in range(nbBigChunks):
             chunkStartDate = startDate + timedelta(chunkIndex * MAX_DAYS)
             chunkEndDate = startDate + timedelta((chunkIndex + 1) * MAX_DAYS)
-            getChunk(chunkStartDate, chunkEndDate, chunkIndex, group)
+            getChunk(chunkStartDate, chunkEndDate, chunkIndex, group, args)
 
             print("Waiting a little bit before getting next chunk")
             sleep(5)
 
         lastChunkStartDate = startDate + timedelta(nbBigChunks * MAX_DAYS)
-        lastChunkEndDate = lastChunkStartDate + reste
-        getChunk(lastChunkStartDate, lastChunkEndDate, str(nbBigChunks), group)
+        lastChunkEndDate = lastChunkStartDate + timedelta(reste)
+        getChunk(lastChunkStartDate, lastChunkEndDate, str(nbBigChunks),
+                 group, args)
 
 
 if __name__ == '__main__':
