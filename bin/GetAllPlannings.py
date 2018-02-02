@@ -37,7 +37,7 @@ def getChunk(startDate, endDate, chunkIndex, group, args):
         with open(args.logPath + "/isen-plannings.log", "a") as logFile:
             logFile.write("FAILURE: " + group + " - " +
                           datetime.strftime(startDate, "%d/%m/%Y") + " -> " +
-                          datetime.strftime(endDate, "%d/%m/%Y"))
+                          datetime.strftime(endDate, "%d/%m/%Y") + "\n")
         return False
 
     if not planning.retrieveData():
@@ -45,7 +45,7 @@ def getChunk(startDate, endDate, chunkIndex, group, args):
         with open(args.logPath + "/isen-plannings.log", "a") as logFile:
             logFile.write("FAILURE: " + group + " - " +
                           datetime.strftime(startDate, "%d/%m/%Y") + " -> " +
-                          datetime.strftime(endDate, "%d/%m/%Y"))
+                          datetime.strftime(endDate, "%d/%m/%Y") + "\n")
         return False
 
     planning.saveFiles()
@@ -54,7 +54,7 @@ def getChunk(startDate, endDate, chunkIndex, group, args):
     with open(args.logPath + "/isen-plannings.log", "a") as logFile:
         logFile.write("SUCCESS: " + group + " - " +
                       datetime.strftime(startDate, "%d/%m/%Y") + " -> " +
-                      datetime.strftime(endDate, "%d/%m/%Y"))
+                      datetime.strftime(endDate, "%d/%m/%Y") + "\n")
     return True
 
 
@@ -117,11 +117,11 @@ def main():
         if group in BLACKLISTED_GROUPS:
             continue
 
-        if os.path.isdir("./" + group):
-            for rmFile in os.listdir(group):
-                os.remove(group + "/" + rmFile)
-            os.removedirs(group)
-        os.mkdir("./" + group)
+        if os.path.isdir(args.savePath + "/" + group):
+            for rmFile in os.listdir(args.savePath + "/" + group):
+                os.remove(args.savePath + "/" + group + "/" + rmFile)
+            os.removedirs(args.savePath + "/" + group)
+        os.makedirs(args.savePath + "/" + group)
 
         for chunkIndex in range(nbBigChunks):
             chunkStartDate = startDate + timedelta(chunkIndex * MAX_DAYS)
