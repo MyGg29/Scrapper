@@ -87,17 +87,17 @@ def main():
 
     config = configparser.ConfigParser()
     config.read(args.conf)
-    args.multiple = (config['general']['multipleFiles']
+    args.multiple = (config['general'].getboolean('multipleFiles')
                      if args.multiple is None else args.multiple)
-    args.verbose = (config['general']['verbose']
+    args.verbose = (config['general'].getboolean('verbose')
                     if args.verbose is None else args.verbose)
-    args.silent = (config['general']['silent']
+    args.silent = (config['general'].getboolean('silent')
                    if args.silent is None else args.silent)
     args.savePath = (config['paths']['savePath']
                      if args.savePath is None else args.savePath)
     args.logPath = (config['paths']['logPath']
                     if args.logPath is None else args.logPath)
-    args.login = (config['user']['loginEnabled']
+    args.login = (config['user'].getboolean('loginEnabled')
                   if args.login is None else args.login)
     args.user = config['user']['user'] if args.user is None else args.user
     args.password = (config['user']['password']
