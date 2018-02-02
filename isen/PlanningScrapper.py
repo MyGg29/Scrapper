@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 # TODO: handle multiple locations
 # TODO: Add checks in the loadPrivatePlanning function
 

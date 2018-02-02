@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import argparse
 from bs4 import BeautifulSoup
 from isen.CASSession import CASSession
@@ -7,7 +10,7 @@ def main():
     # Setup the argument parser and parse them
     argsParser = argparse.ArgumentParser(description="""Gets ISEN's classrooms
      availability in CSV. Outputs a .csv file in the current directory.""",
-                                         prog="python3 RoomsExtractor.py")
+                                         prog="RoomsExtractor.py")
     argsParser.add_argument("-u", help="Username", required=True,
                             metavar="<username>", dest="username")
     argsParser.add_argument("-p", help="Password", required=True,

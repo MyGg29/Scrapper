@@ -14,8 +14,8 @@ TODAY = date.today()
 def main():
     # Setup the argument parser and parse them
     argsParser = argparse.ArgumentParser(description="Scraps ISEN's planning \
-      website. Outputs an .ics file in the current directory.", prog="python3 \
-      PlanningScrapper.py")
+      website. Outputs an .ics file in the current directory.",
+                                         prog="PlanningScrapper.py")
     argsParser.add_argument("-g", help="Set the group", required=True,
                             metavar="<group>", dest="studentGroup")
     argsParser.add_argument("-s", help="Start day", metavar="<start date>",

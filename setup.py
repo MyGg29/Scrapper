@@ -14,7 +14,9 @@ setup(
     url="https://github.com/MyGg29/Scrapper",
     download_url="https://github.com/MyGg29/Scrapper/archive/master.zip",
     license="Beerware",
-    scripts=["bin/GetPlanning.py", "bin/GetAllPlannings.py"],
+    scripts=["bin/GetPlanning.py",
+             "bin/GetAllPlannings.py",
+             "bin/RoomsExtractor.py"],
     # La liste ici : https://pypi.python.org/pypi?:action=list_classifiers
     classifiers=[
         "Programming Language :: Python :: 3",
