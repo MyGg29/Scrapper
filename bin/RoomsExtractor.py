@@ -11,12 +11,12 @@ def main():
     argsParser = argparse.ArgumentParser(description="""Gets ISEN's classrooms
      availability in CSV. Outputs a .csv file in the current directory.""",
                                          prog="RoomsExtractor.py")
-    argsParser.add_argument("-u", help="Username", required=True,
-                            metavar="<username>", dest="username")
-    argsParser.add_argument("-p", help="Password", required=True,
-                            metavar="<password>", dest="password")
-    argsParser.add_argument("-o", help="""Name for the outputted file, without the
-     extension""", metavar="<filename>", required=True, dest="outputFile")
+    argsParser.add_argument("username", help="User for the login",
+                            metavar="<user>")
+    argsParser.add_argument("password", help="Password for the login",
+                            metavar="<password>")
+    argsParser.add_argument("output", help="""Name for the outputted file,
+     without the extension""", metavar="<filename>")
     args = argsParser.parse_args()
 
     url = "https://aurion-lille.isen.fr/faces/Planning.xhtml"

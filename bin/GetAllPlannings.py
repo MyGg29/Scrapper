@@ -64,7 +64,7 @@ def main():
      plannings and save them in a folder in ical format.""",
                                          prog="GetAllPlanning.py")
     argsParser.add_argument("-c", help="Configuration file", dest="conf",
-                            metavar="<conf_file>",
+                            metavar="<conf file>",
                             default="/etc/isen-planning.conf")
     argsParser.add_argument("-v", help="Verbose mode", dest="verbose",
                             action="store_const", const=True)
@@ -80,9 +80,9 @@ def main():
     argsParser.add_argument("-p", help="Password for the login",
                             dest="password", metavar="<password>")
     argsParser.add_argument("-P", help="""The path where to save the files that
-     have been retrieved""", metavar="<files_path>", dest="savePath")
+     have been retrieved""", metavar="<save path>", dest="savePath")
     argsParser.add_argument("-L", help="""The path where to save the
-     log file""", metavar="<log_path", dest="logPath")
+     log file""", metavar="<log path", dest="logPath")
     args = argsParser.parse_args()
 
     config = configparser.ConfigParser()

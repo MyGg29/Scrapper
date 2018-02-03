@@ -16,8 +16,7 @@ def main():
     argsParser = argparse.ArgumentParser(description="Scraps ISEN's planning \
       website. Outputs an .ics file in the current directory.",
                                          prog="PlanningScrapper.py")
-    argsParser.add_argument("-g", help="Set the group", required=True,
-                            metavar="<group>", dest="studentGroup")
+    argsParser.add_argument("g", help="Set the group", metavar="<group>")
     argsParser.add_argument("-s", help="Start day", metavar="<start date>",
                             default=datetime.strftime(TODAY, "%d/%m/%Y"),
                             dest="startDate")
@@ -25,8 +24,8 @@ def main():
                             default=datetime.strftime(TODAY + timedelta(6),
                                                       "%d/%m/%Y"),
                             dest="endDate")
-    argsParser.add_argument("-o", help="Name for the outputted file, without \
-    the extension", metavar="<filename>", required=True, dest="outputFile")
+    argsParser.add_argument("output", metavar="<filename>", help="""Name for
+     the outputted file, without the extension""")
     argsParser.add_argument("-v", help="Verbose mode", dest="verbose",
                             action="store_true")
     argsParser.add_argument("-m", help="Save the events in multiple files",
@@ -45,10 +44,10 @@ def main():
     args.verbose = False if args.silent else args.verbose
 
     planning = PlanningScrapper(
-        group=args.studentGroup,
+        group=args.group,
         startDate=args.startDate,
         endDate=args.endDate,
-        output=args.outputFile,
+        output=args.output,
         user=args.user,
         password=args.password,
         multiple=args.multiple,

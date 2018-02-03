@@ -54,18 +54,20 @@ Those should be stored in `/usr/bin` after installation. You can then call them 
 This script allows the retrieval of maximum 40 days of planning (the maximum allowed by Aurion).
 
 ```
-usage: PlanningScrapper.py [-h] -g <group> [-s <start date>] [-e <end date>]
-                           -o <filename> [-v] [-m] [-S] [-l] [-u <user>]
-                           [-p <password>]
+usage: PlanningScrapper.py [-h] [-s <start date>] [-e <end date>] [-v] [-m]
+                           [-S] [-l] [-u <user>] [-p <password>]
+                           <group> <filename>
 
 Scraps ISEN's planning website. Outputs an .ics file in the current directory.
 
+positional arguments:
+  <group>          Set the group
+  <filename>       Name for the outputted file, without the extension
+
 optional arguments:
   -h, --help       show this help message and exit
-  -g <group>       Set the group
   -s <start date>  Start day
   -e <end date>    End day
-  -o <filename>    Name for the outputted file, without the extension
   -v               Verbose mode
   -m               Save the events in multiple files
   -S               Silent - disables all messages. Overwrites the -v (verbose)
@@ -75,29 +77,47 @@ optional arguments:
   -p <password>    Password for the login
   ```
 
-Dependencies: python-requests python-beautifulsoup4
-
 ### GetAllPlannings.py
 
 A script that will be used on a CalDAV server to regularly update all plannings for all groups.
 
 ```
-usage: GetAllPlannings.py
+usage: GetAllPlanning.py [-h] [-c <conf_file>] [-v] [-m] [-S] [-l] [-u <user>]
+                         [-p <password>] [-P <files_path>] [-L <log_path]
+
+Gets all ISEN's plannings and save them in a folder in ical format.
+
+optional arguments:
+  -h, --help       show this help message and exit
+  -c <conf_file>   Configuration file
+  -v               Verbose mode
+  -m               Save the events in multiple files
+  -S               Silent - disables all messages. Overwrites the -v (verbose)
+                   argument.
+  -l               Enable login
+  -u <user>        User for the login
+  -p <password>    Password for the login
+  -P <files_path>  The path where to save the files that have been retrieved
+  -L <log_path     The path where to save the log file
 ```
+
+Arguments that are not given default to the one given in the configuration file that can be found in `/etc/isen-planning.conf` or by the `-c` argument.
 
 ### RoomsExtractor.py
 
 ```
-usage: RoomsExtractor.py [-h] -u <username> -p <password> -o <filename>
+usage: RoomsExtractor.py [-h] <user> <password> <filename>
 
 Gets ISEN's classrooms availability in CSV. Outputs a .csv file in the current
 directory.
 
+positional arguments:
+  <user>      User for the login
+  <password>  Password for the login
+  <filename>  Name for the outputted file, without the extension
+
 optional arguments:
-  -h, --help     show this help message and exit
-  -u <username>  Username
-  -p <password>  Password
-  -o <filename>  Name for the outputted file, without the extension
+  -h, --help  show this help message and exit
 ```
 
 ## Installation
