@@ -1,5 +1,6 @@
 *.ics
 *.csv
+*.log
 __pycache__/*
 build/*
 services/*

@@ -104,11 +104,11 @@ def main():
                      if args.password is None else args.password)
 
     startDate = datetime(year=2017, month=9, day=1)
-    endDate = datetime(year=2018, month=6, day=24)
+    endDate = datetime(year=2018, month=7, day=1)
 
     totalDays = (endDate - startDate).days
     nbBigChunks = totalDays // MAX_DAYS
-    reste = totalDays % MAX_DAYS
+    reste = (totalDays % MAX_DAYS) - nbBigChunks
 
     print("We need to get " + str(totalDays) + " days in " +
           str(nbBigChunks) + " chunks of " + str(MAX_DAYS) + " days")
@@ -124,14 +124,15 @@ def main():
         os.makedirs(args.savePath + "/" + group)
 
         for chunkIndex in range(nbBigChunks):
-            chunkStartDate = startDate + timedelta(chunkIndex * MAX_DAYS)
-            chunkEndDate = startDate + timedelta((chunkIndex + 1) * MAX_DAYS)
+            chunkStartDate = startDate + timedelta(chunkIndex * (MAX_DAYS + 1))
+            chunkEndDate = chunkStartDate + timedelta(MAX_DAYS)
             getChunk(chunkStartDate, chunkEndDate, chunkIndex, group, args)
 
             print("Waiting a little bit before getting next chunk")
             sleep(5)
 
-        lastChunkStartDate = startDate + timedelta(nbBigChunks * MAX_DAYS)
+        lastChunkStartDate = (startDate +
+                              timedelta(nbBigChunks * (MAX_DAYS + 1)))
         lastChunkEndDate = lastChunkStartDate + timedelta(reste)
         getChunk(lastChunkStartDate, lastChunkEndDate, str(nbBigChunks),
                  group, args)

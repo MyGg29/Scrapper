@@ -32,6 +32,10 @@ class CASSession:
         response = reqSession.post(response.url, params=payload)
         return reqSession
 
+    def close(self):
+        self.session.get("https://cas.isen.fr/logout")
+        self.session.close()
+
     def setUsername(self, newUsername):
         self.username = newUsername
 
@@ -43,4 +47,4 @@ class CASSession:
         return self.session
 
     def __exit__(self, type, value, traceback):
-        self.session.close()
+        self.close()

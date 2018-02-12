@@ -84,7 +84,7 @@ def main():
                    params=payload)
 
         # Write to the output file
-        with open(args.outputFile + ".csv", "w") as csvFile:
+        with open(args.output + ".csv", "w") as csvFile:
             csvFile.write(r.text)
 
 

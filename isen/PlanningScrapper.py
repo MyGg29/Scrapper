@@ -39,6 +39,7 @@ class PlanningScrapper(object):
         self.silent = silent
         self.login = login
 
+        self.cas = None
         self.session = None
         self.payload = None
 
@@ -118,16 +119,19 @@ class PlanningScrapper(object):
         if self.login:
             if not self.loginIsSet(True):
                 return False
-            self.session = CASSession()
-            self.session.setUsername(self.user)
-            self.session.setPassword(self.password)
-            self.session = self.session.getSession()
+            self.cas = CASSession()
+            self.cas.setUsername(self.user)
+            self.cas.setPassword(self.password)
+            self.session = self.cas.getSession()
         else:
             self.session = requests.Session()
         return True
 
     def stopSession(self):
-        self.session.close()
+        if self.login:
+            self.cas.close()
+        else:
+            self.session.close()
 
     def retrieveData(self):
         if not self.groupExists(self.group):
