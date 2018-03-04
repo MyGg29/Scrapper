@@ -115,6 +115,9 @@ class PlanningScrapper(object):
             return False
         return True
 
+    def sessionIsSet(self):
+        return True if self.session is not None else False
+
     def startSession(self):
         if self.login:
             if not self.loginIsSet(True):
@@ -132,6 +135,13 @@ class PlanningScrapper(object):
             self.cas.close()
         else:
             self.session.close()
+
+    def setSession(self, newSession, loggedIn=False):
+        self.login = loggedIn
+        self.session = newSession
+
+    def getSession(self):
+        return self.session
 
     def retrieveData(self):
         if not self.groupExists(self.group):

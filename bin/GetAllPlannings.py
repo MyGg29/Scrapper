@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from time import sleep
 import os
 from isen.PlanningScrapper import PlanningScrapper
+import requests
 
 MAX_DAYS = 40
 GROUPS = ["AP3", "AP4", "AP5", "CIR1", "CIR2", "CIR3", "CPG1", "CPG2", "CSI3",
@@ -17,8 +18,10 @@ GROUPS = ["AP3", "AP4", "AP5", "CIR1", "CIR2", "CIR3", "CPG1", "CPG2", "CSI3",
 BLACKLISTED_GROUPS = ["CIR1", "CIR2", "CIR3", "CPG1", "CPG2", "CSI3", "CSIU3",
                       "M1", "M2"]
 
+session = requests.Session()
 
-def getChunk(startDate, endDate, chunkIndex, group, args):
+
+def getChunk(startDate, endDate, chunkIndex, group, args, session=None):
     planning = PlanningScrapper(
         group=group,
         output=args.savePath + "/" + group + "/" + str(chunkIndex),
@@ -32,13 +35,18 @@ def getChunk(startDate, endDate, chunkIndex, group, args):
         login=args.login
     )
 
-    if not planning.startSession():
+    if session is None:
+        planning.startSession()
+    else:
+        planning.setSession(session)
+
+    if not planning.sessionIsSet():
         print("\x1B[31;40m" + "FAILURE" + "\x1B[0m")
         with open(args.logPath + "/isen-plannings.log", "a") as logFile:
             logFile.write("FAILURE: " + group + " - " +
                           datetime.strftime(startDate, "%d/%m/%Y") + " -> " +
                           datetime.strftime(endDate, "%d/%m/%Y") + "\n")
-        return False
+        return 0
 
     if not planning.retrieveData():
         print("\x1B[31;40m" + "FAILURE" + "\x1B[0m")
@@ -46,16 +54,19 @@ def getChunk(startDate, endDate, chunkIndex, group, args):
             logFile.write("FAILURE: " + group + " - " +
                           datetime.strftime(startDate, "%d/%m/%Y") + " -> " +
                           datetime.strftime(endDate, "%d/%m/%Y") + "\n")
-        return False
+        return 5
 
     planning.saveFiles()
-    planning.stopSession()
+
+    if session is None:
+        planning.stopSession()
+
     print("\x1B[32;40m" + "SUCCESS" + "\x1B[0m")
     with open(args.logPath + "/isen-plannings.log", "a") as logFile:
         logFile.write("SUCCESS: " + group + " - " +
                       datetime.strftime(startDate, "%d/%m/%Y") + " -> " +
                       datetime.strftime(endDate, "%d/%m/%Y") + "\n")
-    return True
+    return 0
 
 
 def main():
@@ -110,6 +121,9 @@ def main():
     nbBigChunks = totalDays // MAX_DAYS
     reste = (totalDays % MAX_DAYS) - nbBigChunks
 
+    session = requests.session()
+    sleepTime = 0
+
     print("We need to get " + str(totalDays) + " days in " +
           str(nbBigChunks) + " chunks of " + str(MAX_DAYS) + " days")
 
@@ -126,16 +140,24 @@ def main():
         for chunkIndex in range(nbBigChunks):
             chunkStartDate = startDate + timedelta(chunkIndex * (MAX_DAYS + 1))
             chunkEndDate = chunkStartDate + timedelta(MAX_DAYS)
-            getChunk(chunkStartDate, chunkEndDate, chunkIndex, group, args)
+            sleepTime = getChunk(chunkStartDate, chunkEndDate, chunkIndex,
+                                 group, args, session)
 
-            print("Waiting a little bit before getting next chunk")
-            sleep(5)
+            if sleepTime > 0:
+                print("A problem occurred, adding a sleep to let it mellow")
+                session.close()
+                session = requests.Session()
+                for timer in range(sleepTime, 0):
+                    print(timer, sep="")
+                    sleep(1)
 
         lastChunkStartDate = (startDate +
                               timedelta(nbBigChunks * (MAX_DAYS + 1)))
         lastChunkEndDate = lastChunkStartDate + timedelta(reste)
         getChunk(lastChunkStartDate, lastChunkEndDate, str(nbBigChunks),
-                 group, args)
+                 group, args, session)
+
+    session.close()
 
 
 if __name__ == '__main__':
