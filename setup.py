@@ -16,7 +16,8 @@ setup(
     license="Beerware",
     scripts=["bin/GetPlanning.py",
              "bin/GetAllPlannings.py",
-             "bin/RoomsExtractor.py"],
+             "bin/RoomsExtractor.py",
+             "bin/GradesExtractor.py"],
     data_files=[('/etc', ['etc/isen-planning.conf'])],
     # La liste ici : https://pypi.python.org/pypi?:action=list_classifiers
     classifiers=[
