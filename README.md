@@ -120,6 +120,22 @@ optional arguments:
   -h, --help  show this help message and exit
 ```
 
+### GradesExtractor.py
+
+```
+usage: GradesExtractor.py [-h] <user> <password> <filename>
+
+Gets grades in CSV. Outputs a .csv file in the current directory.
+
+positional arguments:
+  <user>      User for the login
+  <password>  Password for the login
+  <filename>  Name for the outputted file, without the extension
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+
 ## Installation
 
 Start by cloning this repository using `git clone https://github.com/MyGg29/Scrapper.git`. You can then go in the newly created folder and launch `setup.py install` from here. If you don't have the rights to install it, launch it with `sudo` or add it to your local user by adding the parameter `--user` to the install command. If you do choose to install it for your user, you'll need to add `~/.local/bin` to your PATH to be able to launch the scripts. However, using the modules in your own script should work out of the box.
