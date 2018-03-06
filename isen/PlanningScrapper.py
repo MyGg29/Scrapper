@@ -1,4 +1,3 @@
-# TODO: handle multiple locations
 # TODO: Add checks in the loadPrivatePlanning function
 
 import requests
@@ -144,6 +143,11 @@ class PlanningScrapper(object):
         return self.session
 
     def retrieveData(self):
+        if not self.sessionIsSet():
+            print("""ERROR: Please provide a Session object or initialize
+            one with PlanningScrapper.startSession()""")
+            return False
+
         if not self.groupExists(self.group):
             return False
 
@@ -397,12 +401,22 @@ class PlanningScrapper(object):
         # the events list correspond to an element in the locations list with
         # the same index
         for DOM in parser.find_all("tbody", id=re.compile(".*j_idt205:tb")):
-            if ((len(DOM.contents) == 0 or
-                 DOM.contents[0].contents[0].get_text() == "")):
-                eventsLocation.append({"location": None})
-            else:
-                eventsLocation.append({"location":
-                                       DOM.contents[0].contents[0].get_text()})
+            locationList = []
+            for location in DOM.contents:
+                if location.contents[0].get_text() == "":
+                    locationList = None
+                elif location.contents[0].get_text().split("_")[0] != "VIDEO":
+                    locationList.append(location.contents[0].get_text())
+                    print(location.contents[0].get_text().split("_")[0])
+
+            eventsLocation.append({"location": locationList})
+
+            # if ((len(DOM.contents) == 0 or
+            #      DOM.contents[0].contents[0].get_text() == "")):
+            #     eventsLocation.append({"location": None})
+            # else:
+            #     eventsLocation.append({"location":
+            #                            DOM.contents[0].contents[0].get_text()})
 
         return eventsLocation
 
@@ -478,7 +492,7 @@ class PlanningScrapper(object):
                 icalString += ("DESCRIPTION:" + classType + " - " +
                                '/'.join(teachers) + "\r\n")
             if location is not None:
-                icalString += ("LOCATION:" + location + "\r\n")
+                icalString += ("LOCATION:" + '/'.join(location) + "\r\n")
             icalString += "END:VEVENT\r\n"
 
             if self.multiple:

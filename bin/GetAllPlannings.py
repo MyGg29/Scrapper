@@ -56,6 +56,10 @@ def getChunk(startDate, endDate, chunkIndex, group, args, session=None):
                           datetime.strftime(endDate, "%d/%m/%Y") + "\n")
         return 5
 
+    for rmFile in os.listdir(args.savePath + "/" + group):
+        if rmFile[0] == chunkIndex:
+            os.remove(args.savePath + "/" + group + "/" + rmFile)
+
     planning.saveFiles()
 
     if session is None:
@@ -131,11 +135,14 @@ def main():
         if group in BLACKLISTED_GROUPS:
             continue
 
-        if os.path.isdir(args.savePath + "/" + group):
-            for rmFile in os.listdir(args.savePath + "/" + group):
-                os.remove(args.savePath + "/" + group + "/" + rmFile)
-            os.removedirs(args.savePath + "/" + group)
-        os.makedirs(args.savePath + "/" + group)
+        if not os.path.isdir(args.savePath + "/" + group):
+            os.makedirs(args.savePath + "/" + group)
+
+        # if os.path.isdir(args.savePath + "/" + group):
+        #     for rmFile in os.listdir(args.savePath + "/" + group):
+        #         os.remove(args.savePath + "/" + group + "/" + rmFile)
+        #     os.removedirs(args.savePath + "/" + group)
+        # os.makedirs(args.savePath + "/" + group)
 
         for chunkIndex in range(nbBigChunks):
             chunkStartDate = startDate + timedelta(chunkIndex * (MAX_DAYS + 1))
