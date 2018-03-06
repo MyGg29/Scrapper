@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import sys
 import argparse
 import configparser
 from datetime import datetime, timedelta
@@ -15,13 +16,13 @@ GROUPS = ["AP3", "AP4", "AP5", "CIR1", "CIR2", "CIR3", "CPG1", "CPG2", "CSI3",
 
 # Those are blacklisted group because we don't handle them yet, see
 # PlanningScrapper.py for more information
-BLACKLISTED_GROUPS = ["CIR1", "CIR2", "CIR3", "CPG1", "CPG2", "CSI3", "CSIU3",
-                      "M1", "M2"]
+BLACKLISTED_GROUPS = []
 
 session = requests.Session()
 
 
-def getChunk(startDate, endDate, chunkIndex, group, args, session=None):
+def getChunk(startDate, endDate, chunkIndex, group, args,
+             strikes=0, session=None):
     planning = PlanningScrapper(
         group=group,
         output=args.savePath + "/" + group + "/" + str(chunkIndex),
@@ -46,7 +47,9 @@ def getChunk(startDate, endDate, chunkIndex, group, args, session=None):
             logFile.write("FAILURE: " + group + " - " +
                           datetime.strftime(startDate, "%d/%m/%Y") + " -> " +
                           datetime.strftime(endDate, "%d/%m/%Y") + "\n")
-        return 0
+
+        strikes += 1
+        return [0, strikes]
 
     if not planning.retrieveData():
         print("\x1B[31;40m" + "FAILURE" + "\x1B[0m")
@@ -54,7 +57,14 @@ def getChunk(startDate, endDate, chunkIndex, group, args, session=None):
             logFile.write("FAILURE: " + group + " - " +
                           datetime.strftime(startDate, "%d/%m/%Y") + " -> " +
                           datetime.strftime(endDate, "%d/%m/%Y") + "\n")
-        return 5
+
+        strikes += 1
+        if strikes >= 3:
+            print("3 strikes, using aggressive waiting")
+            return [30, 0]
+        else:
+            return [5, strikes]
+        return [5, 0]
 
     for rmFile in os.listdir(args.savePath + "/" + group):
         if rmFile[0] == chunkIndex:
@@ -70,7 +80,8 @@ def getChunk(startDate, endDate, chunkIndex, group, args, session=None):
         logFile.write("SUCCESS: " + group + " - " +
                       datetime.strftime(startDate, "%d/%m/%Y") + " -> " +
                       datetime.strftime(endDate, "%d/%m/%Y") + "\n")
-    return 0
+
+    return [0, 0]
 
 
 def main():
@@ -127,6 +138,7 @@ def main():
 
     session = requests.session()
     sleepTime = 0
+    strikes = 0
 
     print("We need to get " + str(totalDays) + " days in " +
           str(nbBigChunks) + " chunks of " + str(MAX_DAYS) + " days")
@@ -138,31 +150,27 @@ def main():
         if not os.path.isdir(args.savePath + "/" + group):
             os.makedirs(args.savePath + "/" + group)
 
-        # if os.path.isdir(args.savePath + "/" + group):
-        #     for rmFile in os.listdir(args.savePath + "/" + group):
-        #         os.remove(args.savePath + "/" + group + "/" + rmFile)
-        #     os.removedirs(args.savePath + "/" + group)
-        # os.makedirs(args.savePath + "/" + group)
-
         for chunkIndex in range(nbBigChunks):
             chunkStartDate = startDate + timedelta(chunkIndex * (MAX_DAYS + 1))
             chunkEndDate = chunkStartDate + timedelta(MAX_DAYS)
-            sleepTime = getChunk(chunkStartDate, chunkEndDate, chunkIndex,
-                                 group, args, session)
+            [sleepTime, strikes] = getChunk(chunkStartDate, chunkEndDate,
+                                            chunkIndex, group, args, strikes,
+                                            session)
 
             if sleepTime > 0:
                 print("A problem occurred, adding a sleep to let it mellow")
                 session.close()
                 session = requests.Session()
-                for timer in range(sleepTime, 0):
-                    print(timer, sep="")
+                for timerIndex in range(sleepTime, 0, -1):
+                    sys.stdout.write(str(timerIndex) + "... ")
+                    sys.stdout.flush()
                     sleep(1)
 
         lastChunkStartDate = (startDate +
                               timedelta(nbBigChunks * (MAX_DAYS + 1)))
         lastChunkEndDate = lastChunkStartDate + timedelta(reste)
         getChunk(lastChunkStartDate, lastChunkEndDate, str(nbBigChunks),
-                 group, args, session)
+                 group, args, strikes, session)
 
     session.close()
 

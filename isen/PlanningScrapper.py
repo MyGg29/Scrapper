@@ -99,7 +99,7 @@ class PlanningScrapper(object):
                   datetime.strptime(self.startDate, "%d/%m/%Y")).days
 
         # Display the dates
-        if not self.silent:
+        if self.verbose:
             print("Start date: " + self.startDate)
             print("End date: " + self.endDate)
             print("We'll try to fetch " + str(nbDays) + " days")
@@ -179,8 +179,9 @@ class PlanningScrapper(object):
             print("- " + str(len(self.eventsTeacher)) + " teachers")
             print("- " + str(len(self.eventsLocation)) + " locations")
             print("- " + str(len(self.eventsSubject)) + " subjects")
-        if ((len(self.eventsData) == len(self.eventsTeacher) and
-             len(self.eventsTeacher) == len(self.eventsLocation))):
+        if len(self.eventsData) == len(self.eventsTeacher) and \
+           len(self.eventsTeacher) == len(self.eventsLocation) and \
+           self.verbose:
             print("All clear!")
 
         if ((len(self.eventsData) != len(self.eventsTeacher) or
@@ -407,7 +408,6 @@ class PlanningScrapper(object):
                     locationList = None
                 elif location.contents[0].get_text().split("_")[0] != "VIDEO":
                     locationList.append(location.contents[0].get_text())
-                    print(location.contents[0].get_text().split("_")[0])
 
             eventsLocation.append({"location": locationList})
 
